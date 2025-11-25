@@ -48,23 +48,32 @@ public class LoginActivity extends AppCompatActivity {
         contentLayout.setPadding(80, 100, 80, 100); // Grosses marges sur les côtés
         scrollView.addView(contentLayout);
 
-        // --- 2. LOGO ---
         ImageView logoView = new ImageView(this);
         // Assurez-vous d'avoir votre logo dans res/drawable/ic_logo_intellicuisine
-        // Si vous n'avez pas encore l'image, commentez la ligne setImageResource
-        logoView.setImageResource(R.drawable.ic_logo_intellicuisine); // Remplacer par R.drawable.ic_logo_intellicuisine
-        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(300, 300);
-        logoParams.setMargins(0, 50, 0, 30);
+        logoView.setImageResource(R.drawable.ic_logo_intellicuisine);
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(200, 200);
+        logoParams.setMargins(0, 10, 0, 10);
         logoView.setLayoutParams(logoParams);
         contentLayout.addView(logoView);
 
-        // --- 3. TEXTES D'ACCUEIL ---
+        TextView appNameView = new TextView(this);
+        appNameView.setText("IntelliCuisine");
+        appNameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        appNameView.setTypeface(null, Typeface.BOLD);
+        appNameView.setTextColor(Color.parseColor("#FF9800"));
+        appNameView.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams appNameParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        appNameParams.setMargins(0, 0, 0, 50);
+        appNameView.setLayoutParams(appNameParams);
+        contentLayout.addView(appNameView);
+
         TextView titleView = new TextView(this);
         titleView.setText("Bon retour !"); // "Welcome Back!"
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         titleView.setTypeface(null, Typeface.BOLD);
         titleView.setTextColor(Color.parseColor("#1F1F1F"));
         titleView.setGravity(Gravity.CENTER);
+        titleView.setPadding(0, 60, 0, 20);
         contentLayout.addView(titleView);
 
         TextView subtitleView = new TextView(this);
@@ -75,19 +84,14 @@ public class LoginActivity extends AppCompatActivity {
         subtitleView.setPadding(0, 10, 0, 80); // Espace avant les inputs
         contentLayout.addView(subtitleView);
 
-        // --- 4. CHAMPS DE SAISIE (STYLE MODERNE) ---
-        // Email
         EditText emailInput = createStyledEditText("Email", InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         contentLayout.addView(emailInput);
 
-        // Espace entre les champs
         addVerticalSpace(contentLayout, 40);
 
-        // Password
         EditText passInput = createStyledEditText("Mot de passe", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         contentLayout.addView(passInput);
 
-        // Forgot Password (Optionnel, juste visuel pour l'instant)
         TextView forgotPass = new TextView(this);
         forgotPass.setText("Mot de passe oublié ?");
         forgotPass.setTextColor(Color.parseColor("#FF9800")); // Orange
@@ -98,7 +102,6 @@ public class LoginActivity extends AppCompatActivity {
         forgotPass.setLayoutParams(fpParams);
         contentLayout.addView(forgotPass);
 
-        // --- 5. BOUTON LOGIN (GRADIENT) ---
         Button loginBtn = new Button(this);
         loginBtn.setText("Se connecter");
         loginBtn.setTextColor(Color.WHITE);
@@ -117,7 +120,6 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn.setElevation(10f);
         contentLayout.addView(loginBtn);
 
-        // --- 6. FOOTER ---
         LinearLayout footerLayout = new LinearLayout(this);
         footerLayout.setOrientation(LinearLayout.HORIZONTAL);
         footerLayout.setGravity(Gravity.CENTER);
@@ -139,14 +141,12 @@ public class LoginActivity extends AppCompatActivity {
         // Définir la vue
         setContentView(scrollView);
 
-        // --- GESTION DES WINDOW INSETS ---
         ViewCompat.setOnApplyWindowInsetsListener(contentLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(80, systemBars.top + 50, 80, systemBars.bottom + 50);
             return insets;
         });
 
-        // --- LOGIQUE (Listeners) ---
         loginBtn.setOnClickListener(v -> {
             String email = emailInput.getText().toString().trim();
             String password = passInput.getText().toString().trim();
@@ -170,9 +170,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    // --- HELPER METHODS POUR LE STYLE ---
 
-    // Crée un EditText avec fond gris clair et coins ronds
     private EditText createStyledEditText(String hint, int inputType) {
         EditText editText = new EditText(this);
         editText.setHint(hint);
@@ -184,7 +182,6 @@ public class LoginActivity extends AppCompatActivity {
         return editText;
     }
 
-    // Crée un drawable rectangle arrondi
     private GradientDrawable createRoundedDrawable(int color, float radius) {
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.RECTANGLE);
