@@ -47,6 +47,26 @@ public class RegisterActivity extends AppCompatActivity {
         contentLayout.setPadding(80, 100, 80, 100);
         scrollView.addView(contentLayout);
 
+        ImageView logoView = new ImageView(this);
+        logoView.setImageResource(R.drawable.ic_logo_intellicuisine); // Votre image
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(200, 200); // Un peu plus petit que sur le Login
+        logoParams.setMargins(0, 10, 0, 10);
+        logoView.setLayoutParams(logoParams);
+        contentLayout.addView(logoView);
+
+        TextView appNameView = new TextView(this);
+        appNameView.setText("IntelliCuisine");
+        appNameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        appNameView.setTypeface(null, Typeface.BOLD);
+        appNameView.setTextColor(Color.parseColor("#FF9800"));
+        appNameView.setGravity(Gravity.CENTER);
+
+        LinearLayout.LayoutParams appNameParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        appNameParams.setMargins(0, 0, 0, 50); // Espace avant le titre suivant
+        appNameView.setLayoutParams(appNameParams);
+
+        contentLayout.addView(appNameView);
+
         // --- TITRES ---
         // On n'est pas obligé de remettre le logo ici, ou alors plus petit
         TextView titleView = new TextView(this);
