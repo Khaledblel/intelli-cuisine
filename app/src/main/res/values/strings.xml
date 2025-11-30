@@ -1,36 +1,41 @@
 <resources>
+    <!-- General App Strings -->
     <string name="app_name">IntelliCuisine</string>
 
-    <!-- Login Activity Strings -->
-    <string name="welcome_back">Bon retour!</string>
-    <string name="login_subtitle">Connectez-vous pour continuer</string>
+    <!-- Authentication - Common -->
     <string name="email_hint">Email</string>
     <string name="password_hint">Mot de passe</string>
+    <string name="email_address_hint">Adresse Email</string>
+
+    <!-- Authentication - Login -->
+    <string name="welcome_back">Bon retour!</string>
+    <string name="login_subtitle">Connectez-vous pour continuer</string>
     <string name="forgot_password">Mot de passe oublié?</string>
     <string name="login_button">Se connecter</string>
     <string name="no_account">"Pas encore de compte? "</string>
     <string name="register_link">S\'inscrire</string>
-    <string name="fill_fields_error">Remplissez les champs</string>
-    <string name="error_prefix">Erreur: </string>
 
-    <!-- Register Activity Strings -->
+    <!-- Authentication - Register -->
     <string name="create_account_title">Créer un compte</string>
     <string name="register_subtitle">Rejoignez IntelliCuisine aujourd\'hui</string>
     <string name="name_hint">Nom</string>
-    <string name="email_address_hint">Adresse Email</string>
     <string name="confirm_password_hint">Confirmer mot de passe</string>
     <string name="already_member">"Déjà membre? "</string>
-    <string name="fields_required_error">Champs requis</string>
-    <string name="passwords_mismatch_error">Les mots de passe ne correspondent pas</string>
 
-    <!-- Forgot Password Activity Strings -->
+    <!-- Authentication - Forgot Password -->
     <string name="reset_password_title">Réinitialiser le mot de passe</string>
     <string name="reset_password_subtitle">Entrez votre email pour recevoir un lien de réinitialisation</string>
     <string name="send_reset_link">Envoyer le lien</string>
     <string name="reset_email_sent">Email de réinitialisation envoyé. Vérifiez votre boîte de réception.</string>
+
+    <!-- Error Messages - Validation -->
+    <string name="fill_fields_error">Remplissez les champs</string>
+    <string name="fields_required_error">Champs requis</string>
+    <string name="passwords_mismatch_error">Les mots de passe ne correspondent pas</string>
+    <string name="error_prefix">Erreur: </string>
     <string name="reset_email_error">Erreur lors de l\'envoi de l\'email: </string>
 
-    <!-- Firebase Auth Errors -->
+    <!-- Error Messages - Firebase Auth -->
     <string name="error_invalid_email">L\'adresse email est mal formatée.</string>
     <string name="error_wrong_password">Le mot de passe est incorrect.</string>
     <string name="error_user_not_found">Aucun compte trouvé avec cet email.</string>
