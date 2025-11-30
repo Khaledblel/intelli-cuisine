@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">IntelliCuisine</string>
+
+    <!-- Login Activity Strings -->
+    <string name="welcome_back">Bon retour!</string>
+    <string name="login_subtitle">Connectez-vous pour continuer</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Mot de passe</string>
+    <string name="forgot_password">Mot de passe oublié?</string>
+    <string name="login_button">Se connecter</string>
+    <string name="no_account">"Pas encore de compte? "</string>
+    <string name="register_link">S\'inscrire</string>
+    <string name="fill_fields_error">Remplissez les champs</string>
+    <string name="error_prefix">Erreur: </string>
+
+    <!-- Register Activity Strings -->
+    <string name="create_account_title">Créer un compte</string>
+    <string name="register_subtitle">Rejoignez IntelliCuisine aujourd\'hui</string>
+    <string name="name_hint">Nom</string>
+    <string name="email_address_hint">Adresse Email</string>
+    <string name="confirm_password_hint">Confirmer mot de passe</string>
+    <string name="already_member">"Déjà membre? "</string>
+    <string name="fields_required_error">Champs requis</string>
+    <string name="passwords_mismatch_error">Les mots de passe ne correspondent pas</string>
 </resources>
