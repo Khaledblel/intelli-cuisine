@@ -27,6 +27,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.khaled.intellicuisine.ui.dashboard.HomeActivity;
+import com.khaled.intellicuisine.utils.AuthUtils;
 import com.khaled.intellicuisine.R;
 
 public class LoginActivity extends AppCompatActivity {
@@ -155,11 +156,7 @@ public class LoginActivity extends AppCompatActivity {
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                 } else {
-                    String errorMessage = getString(R.string.error_prefix) + "Inconnue";
-
-                    if (task.getException() != null) {
-                        errorMessage = getString(R.string.error_prefix) + " " + task.getException().getMessage();
-                    }
+                    String errorMessage = AuthUtils.getReadableErrorMessage(this, task.getException());
                     Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                 }
             });

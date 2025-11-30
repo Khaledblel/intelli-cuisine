@@ -29,6 +29,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.khaled.intellicuisine.ui.dashboard.HomeActivity;
+import com.khaled.intellicuisine.utils.AuthUtils;
 import com.khaled.intellicuisine.R;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -180,10 +181,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 .addOnCompleteListener(profileTask -> updateUI(user));
                     }
                 } else {
-                    String errorMsg = getString(R.string.error_prefix) + "Inconnue";
-                    if (task.getException() != null) {
-                        errorMsg = getString(R.string.error_prefix) + " " + task.getException().getMessage();
-                    }
+                    String errorMsg = AuthUtils.getReadableErrorMessage(this, task.getException());
                     Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             });

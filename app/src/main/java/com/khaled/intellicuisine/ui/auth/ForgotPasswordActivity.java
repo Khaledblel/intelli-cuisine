@@ -24,6 +24,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.khaled.intellicuisine.utils.AuthUtils;
 import com.khaled.intellicuisine.R;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
@@ -108,10 +109,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                             Toast.makeText(ForgotPasswordActivity.this, R.string.reset_email_sent, Toast.LENGTH_LONG).show();
                             finish(); // Go back to login
                         } else {
-                            String error = getString(R.string.reset_email_error);
-                            if (task.getException() != null) {
-                                error += task.getException().getMessage();
-                            }
+                            String error = AuthUtils.getReadableErrorMessage(this, task.getException());
                             Toast.makeText(ForgotPasswordActivity.this, error, Toast.LENGTH_LONG).show();
                         }
                     });
