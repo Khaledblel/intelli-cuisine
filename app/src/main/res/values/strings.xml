@@ -29,4 +29,14 @@
     <string name="send_reset_link">Envoyer le lien</string>
     <string name="reset_email_sent">Email de réinitialisation envoyé. Vérifiez votre boîte de réception.</string>
     <string name="reset_email_error">Erreur lors de l\'envoi de l\'email: </string>
+
+    <!-- Firebase Auth Errors -->
+    <string name="error_invalid_email">L\'adresse email est mal formatée.</string>
+    <string name="error_wrong_password">Le mot de passe est incorrect.</string>
+    <string name="error_user_not_found">Aucun compte trouvé avec cet email.</string>
+    <string name="error_email_already_in_use">Cet email est déjà associé à un autre compte.</string>
+    <string name="error_weak_password">Le mot de passe doit contenir au moins 6 caractères.</string>
+    <string name="error_network_request_failed">Erreur réseau. Vérifiez votre connexion internet.</string>
+    <string name="error_too_many_requests">Trop de tentatives. Veuillez réessayer plus tard.</string>
+    <string name="error_unknown">Une erreur inconnue est survenue.</string>
 </resources>
