@@ -22,4 +22,11 @@
     <string name="already_member">"Déjà membre? "</string>
     <string name="fields_required_error">Champs requis</string>
     <string name="passwords_mismatch_error">Les mots de passe ne correspondent pas</string>
+
+    <!-- Forgot Password Activity Strings -->
+    <string name="reset_password_title">Réinitialiser le mot de passe</string>
+    <string name="reset_password_subtitle">Entrez votre email pour recevoir un lien de réinitialisation</string>
+    <string name="send_reset_link">Envoyer le lien</string>
+    <string name="reset_email_sent">Email de réinitialisation envoyé. Vérifiez votre boîte de réception.</string>
+    <string name="reset_email_error">Erreur lors de l\'envoi de l\'email: </string>
 </resources>

@@ -98,6 +98,7 @@ public class LoginActivity extends AppCompatActivity {
         LinearLayout.LayoutParams fpParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         fpParams.setMargins(0, 20, 0, 60);
         forgotPass.setLayoutParams(fpParams);
+        forgotPass.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
         contentLayout.addView(forgotPass);
 
         Button loginBtn = new Button(this);
