@@ -26,6 +26,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -48,8 +49,8 @@ public class RegisterActivity extends AppCompatActivity {
         scrollView.addView(contentLayout);
 
         ImageView logoView = new ImageView(this);
-        logoView.setImageResource(R.drawable.ic_logo_intellicuisine); // Votre image
-        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(200, 200); // Un peu plus petit que sur le Login
+        logoView.setImageResource(R.drawable.ic_logo_intellicuisine);
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(200, 200);
         logoParams.setMargins(0, 10, 0, 10);
         logoView.setLayoutParams(logoParams);
         contentLayout.addView(logoView);
@@ -62,13 +63,11 @@ public class RegisterActivity extends AppCompatActivity {
         appNameView.setGravity(Gravity.CENTER);
 
         LinearLayout.LayoutParams appNameParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        appNameParams.setMargins(0, 0, 0, 50); // Espace avant le titre suivant
+        appNameParams.setMargins(0, 0, 0, 50);
         appNameView.setLayoutParams(appNameParams);
 
         contentLayout.addView(appNameView);
 
-        // --- TITRES ---
-        // On n'est pas obligé de remettre le logo ici, ou alors plus petit
         TextView titleView = new TextView(this);
         titleView.setText("Créer un compte");
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
@@ -86,7 +85,11 @@ public class RegisterActivity extends AppCompatActivity {
         subtitleView.setPadding(0, 0, 0, 80);
         contentLayout.addView(subtitleView);
 
-        // --- INPUTS ---
+        EditText nameInput = createStyledEditText("Nom", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        contentLayout.addView(nameInput);
+
+        addVerticalSpace(contentLayout, 40);
+
         EditText emailInput = createStyledEditText("Adresse Email", InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         contentLayout.addView(emailInput);
 
@@ -97,13 +100,11 @@ public class RegisterActivity extends AppCompatActivity {
 
         addVerticalSpace(contentLayout, 40);
 
-        // Confirmation (Optionnel mais recommandé)
         EditText confirmPassInput = createStyledEditText("Confirmer mot de passe", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         contentLayout.addView(confirmPassInput);
 
         addVerticalSpace(contentLayout, 80);
 
-        // --- BOUTON ---
         Button registerBtn = new Button(this);
         registerBtn.setText("S'inscrire");
         registerBtn.setTextColor(Color.WHITE);
@@ -121,7 +122,6 @@ public class RegisterActivity extends AppCompatActivity {
         registerBtn.setElevation(10f);
         contentLayout.addView(registerBtn);
 
-        // --- FOOTER ---
         LinearLayout footerLayout = new LinearLayout(this);
         footerLayout.setOrientation(LinearLayout.HORIZONTAL);
         footerLayout.setGravity(Gravity.CENTER);
@@ -148,13 +148,15 @@ public class RegisterActivity extends AppCompatActivity {
             return insets;
         });
 
-        // --- LOGIQUE ---
         registerBtn.setOnClickListener(v -> {
+
+            String name = nameInput.getText().toString().trim();
             String email = emailInput.getText().toString().trim();
             String pass = passInput.getText().toString().trim();
             String confirm = confirmPassInput.getText().toString().trim();
 
-            if(email.isEmpty() || pass.isEmpty()) {
+
+            if(name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
                 Toast.makeText(this, "Champs requis", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -165,7 +167,20 @@ public class RegisterActivity extends AppCompatActivity {
 
             mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
-                    updateUI(mAuth.getCurrentUser());
+
+                    FirebaseUser user = mAuth.getCurrentUser();
+
+                    if (user != null) {
+                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(name)
+                                .build();
+                        user.updateProfile(profileUpdates)
+                                .addOnCompleteListener(profileTask -> {
+                                    if (profileTask.isSuccessful()) {
+                                        updateUI(user);
+                                    }
+                                });
+                    }
                 } else {
                     Toast.makeText(this, "Erreur: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                 }
@@ -183,7 +198,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    // Méthodes Helper copiées (Ou à mettre dans une classe utilitaire Utils.java)
+    // Méthodes Helper
     private EditText createStyledEditText(String hint, int inputType) {
         EditText editText = new EditText(this);
         editText.setHint(hint);
