@@ -3,12 +3,13 @@ package com.khaled.intellicuisine;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.khaled.intellicuisine.ui.auth.LoginActivity;
+import com.khaled.intellicuisine.ui.dashboard.HomeActivity;
 
 public class MainActivity extends AppCompatActivity {
 

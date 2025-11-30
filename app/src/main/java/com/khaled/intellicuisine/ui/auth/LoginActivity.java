@@ -1,4 +1,4 @@
-package com.khaled.intellicuisine;
+package com.khaled.intellicuisine.ui.auth;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -26,10 +26,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
+import com.khaled.intellicuisine.ui.dashboard.HomeActivity;
+import com.khaled.intellicuisine.R;
 
-public class RegisterActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
 
@@ -62,15 +62,13 @@ public class RegisterActivity extends AppCompatActivity {
         appNameView.setTypeface(null, Typeface.BOLD);
         appNameView.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
         appNameView.setGravity(Gravity.CENTER);
-
         LinearLayout.LayoutParams appNameParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         appNameParams.setMargins(0, 0, 0, 50);
         appNameView.setLayoutParams(appNameParams);
-
         contentLayout.addView(appNameView);
 
         TextView titleView = new TextView(this);
-        titleView.setText(R.string.create_account_title);
+        titleView.setText(R.string.welcome_back);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         titleView.setTypeface(null, Typeface.BOLD);
         titleView.setTextColor(ContextCompat.getColor(this, R.color.dark_text));
@@ -79,19 +77,14 @@ public class RegisterActivity extends AppCompatActivity {
         contentLayout.addView(titleView);
 
         TextView subtitleView = new TextView(this);
-        subtitleView.setText(R.string.register_subtitle);
+        subtitleView.setText(R.string.login_subtitle);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         subtitleView.setTextColor(Color.GRAY);
         subtitleView.setGravity(Gravity.CENTER);
-        subtitleView.setPadding(0, 0, 0, 80);
+        subtitleView.setPadding(0, 10, 0, 80);
         contentLayout.addView(subtitleView);
 
-        EditText nameInput = createStyledEditText(getString(R.string.name_hint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        contentLayout.addView(nameInput);
-
-        addVerticalSpace(contentLayout, 40);
-
-        EditText emailInput = createStyledEditText(getString(R.string.email_address_hint), InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        EditText emailInput = createStyledEditText(getString(R.string.email_hint), InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         contentLayout.addView(emailInput);
 
         addVerticalSpace(contentLayout, 40);
@@ -99,48 +92,48 @@ public class RegisterActivity extends AppCompatActivity {
         EditText passInput = createStyledEditText(getString(R.string.password_hint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         contentLayout.addView(passInput);
 
-        addVerticalSpace(contentLayout, 40);
+        TextView forgotPass = new TextView(this);
+        forgotPass.setText(R.string.forgot_password);
+        forgotPass.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
+        forgotPass.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        forgotPass.setGravity(Gravity.END);
+        LinearLayout.LayoutParams fpParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        fpParams.setMargins(0, 20, 0, 60);
+        forgotPass.setLayoutParams(fpParams);
+        forgotPass.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
+        contentLayout.addView(forgotPass);
 
-        EditText confirmPassInput = createStyledEditText(getString(R.string.confirm_password_hint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        contentLayout.addView(confirmPassInput);
-
-        addVerticalSpace(contentLayout, 80);
-
-        Button registerBtn = new Button(this);
-        registerBtn.setText(R.string.register_link);
-        registerBtn.setTextColor(Color.WHITE);
-        registerBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        registerBtn.setTypeface(null, Typeface.BOLD);
-
+        Button loginBtn = new Button(this);
+        loginBtn.setText(R.string.login_button);
+        loginBtn.setTextColor(Color.WHITE);
+        loginBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        loginBtn.setTypeface(null, Typeface.BOLD);
         GradientDrawable btnBg = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[] {ContextCompat.getColor(this, R.color.primary_orange), ContextCompat.getColor(this, R.color.gradient_end_orange)});
         btnBg.setCornerRadius(30f);
-        registerBtn.setBackground(btnBg);
-
+        loginBtn.setBackground(btnBg);
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150);
-        registerBtn.setLayoutParams(btnParams);
-        registerBtn.setElevation(10f);
-        contentLayout.addView(registerBtn);
+        loginBtn.setLayoutParams(btnParams);
+        loginBtn.setElevation(10f);
+        contentLayout.addView(loginBtn);
 
         LinearLayout footerLayout = new LinearLayout(this);
         footerLayout.setOrientation(LinearLayout.HORIZONTAL);
         footerLayout.setGravity(Gravity.CENTER);
         footerLayout.setPadding(0, 60, 0, 0);
 
-        TextView hasAccountText = new TextView(this);
-        hasAccountText.setText(R.string.already_member);
-        hasAccountText.setTextColor(Color.GRAY);
-        footerLayout.addView(hasAccountText);
+        TextView noAccountText = new TextView(this);
+        noAccountText.setText(R.string.no_account);
+        noAccountText.setTextColor(Color.GRAY);
+        footerLayout.addView(noAccountText);
 
-        TextView loginLink = new TextView(this);
-        loginLink.setText(R.string.login_button);
-        loginLink.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
-        loginLink.setTypeface(null, Typeface.BOLD);
-        footerLayout.addView(loginLink);
-
+        TextView registerLink = new TextView(this);
+        registerLink.setText(R.string.register_link);
+        registerLink.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
+        registerLink.setTypeface(null, Typeface.BOLD);
+        footerLayout.addView(registerLink);
         contentLayout.addView(footerLayout);
-
         setContentView(scrollView);
 
         ViewCompat.setOnApplyWindowInsetsListener(contentLayout, (v, insets) -> {
@@ -149,56 +142,33 @@ public class RegisterActivity extends AppCompatActivity {
             return insets;
         });
 
-        registerBtn.setOnClickListener(v -> {
-
-            String name = nameInput.getText().toString().trim();
+        loginBtn.setOnClickListener(v -> {
             String email = emailInput.getText().toString().trim();
-            String pass = passInput.getText().toString().trim();
-            String confirm = confirmPassInput.getText().toString().trim();
-
-
-            if(name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
-                Toast.makeText(this, R.string.fields_required_error, Toast.LENGTH_SHORT).show();
+            String password = passInput.getText().toString().trim();
+            if(email.isEmpty() || password.isEmpty()){
+                Toast.makeText(LoginActivity.this, R.string.fill_fields_error, Toast.LENGTH_SHORT).show();
                 return;
             }
-            if(!pass.equals(confirm)) {
-                Toast.makeText(this, R.string.passwords_mismatch_error, Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(task -> {
+            mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    if (user != null) {
-                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(name)
-                                .build();
-
-                        user.updateProfile(profileUpdates)
-                                .addOnCompleteListener(profileTask -> updateUI(user));
-                    }
+                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                 } else {
-                    String errorMsg = getString(R.string.error_prefix) + "Inconnue";
+                    String errorMessage = getString(R.string.error_prefix) + "Inconnue";
+
                     if (task.getException() != null) {
-                        errorMsg = getString(R.string.error_prefix) + " " + task.getException().getMessage();
+                        errorMessage = getString(R.string.error_prefix) + " " + task.getException().getMessage();
                     }
-                    Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                 }
             });
         });
 
-        loginLink.setOnClickListener(v -> finish());
+        registerLink.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }
 
-    private void updateUI(FirebaseUser user) {
-        if (user != null) {
-            Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        }
-    }
 
-    // Méthodes Helper
     private EditText createStyledEditText(String hint, int inputType) {
         EditText editText = new EditText(this);
         editText.setHint(hint);

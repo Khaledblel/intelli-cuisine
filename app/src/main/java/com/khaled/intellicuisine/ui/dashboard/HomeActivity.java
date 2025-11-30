@@ -1,4 +1,4 @@
-package com.khaled.intellicuisine;
+package com.khaled.intellicuisine.ui.dashboard;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +11,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.khaled.intellicuisine.R;
+import com.khaled.intellicuisine.ui.auth.LoginActivity;
 
 public class HomeActivity extends AppCompatActivity {
 

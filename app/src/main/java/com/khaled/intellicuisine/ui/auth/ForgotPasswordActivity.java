@@ -1,4 +1,4 @@
-package com.khaled.intellicuisine;
+package com.khaled.intellicuisine.ui.auth;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -24,6 +24,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.khaled.intellicuisine.R;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
 
