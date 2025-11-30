@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -56,10 +57,10 @@ public class RegisterActivity extends AppCompatActivity {
         contentLayout.addView(logoView);
 
         TextView appNameView = new TextView(this);
-        appNameView.setText("IntelliCuisine");
+        appNameView.setText(R.string.app_name);
         appNameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         appNameView.setTypeface(null, Typeface.BOLD);
-        appNameView.setTextColor(Color.parseColor("#FF9800"));
+        appNameView.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
         appNameView.setGravity(Gravity.CENTER);
 
         LinearLayout.LayoutParams appNameParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -69,51 +70,51 @@ public class RegisterActivity extends AppCompatActivity {
         contentLayout.addView(appNameView);
 
         TextView titleView = new TextView(this);
-        titleView.setText("Créer un compte");
+        titleView.setText(R.string.create_account_title);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         titleView.setTypeface(null, Typeface.BOLD);
-        titleView.setTextColor(Color.parseColor("#1F1F1F"));
+        titleView.setTextColor(ContextCompat.getColor(this, R.color.dark_text));
         titleView.setGravity(Gravity.CENTER);
         titleView.setPadding(0, 60, 0, 20);
         contentLayout.addView(titleView);
 
         TextView subtitleView = new TextView(this);
-        subtitleView.setText("Rejoignez IntelliCuisine aujourd'hui");
+        subtitleView.setText(R.string.register_subtitle);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         subtitleView.setTextColor(Color.GRAY);
         subtitleView.setGravity(Gravity.CENTER);
         subtitleView.setPadding(0, 0, 0, 80);
         contentLayout.addView(subtitleView);
 
-        EditText nameInput = createStyledEditText("Nom", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        EditText nameInput = createStyledEditText(getString(R.string.name_hint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         contentLayout.addView(nameInput);
 
         addVerticalSpace(contentLayout, 40);
 
-        EditText emailInput = createStyledEditText("Adresse Email", InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        EditText emailInput = createStyledEditText(getString(R.string.email_address_hint), InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         contentLayout.addView(emailInput);
 
         addVerticalSpace(contentLayout, 40);
 
-        EditText passInput = createStyledEditText("Mot de passe", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        EditText passInput = createStyledEditText(getString(R.string.password_hint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         contentLayout.addView(passInput);
 
         addVerticalSpace(contentLayout, 40);
 
-        EditText confirmPassInput = createStyledEditText("Confirmer mot de passe", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        EditText confirmPassInput = createStyledEditText(getString(R.string.confirm_password_hint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         contentLayout.addView(confirmPassInput);
 
         addVerticalSpace(contentLayout, 80);
 
         Button registerBtn = new Button(this);
-        registerBtn.setText("S'inscrire");
+        registerBtn.setText(R.string.register_link);
         registerBtn.setTextColor(Color.WHITE);
         registerBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         registerBtn.setTypeface(null, Typeface.BOLD);
 
         GradientDrawable btnBg = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[] {Color.parseColor("#FF9800"), Color.parseColor("#FF5722")});
+                new int[] {ContextCompat.getColor(this, R.color.primary_orange), ContextCompat.getColor(this, R.color.gradient_end_orange)});
         btnBg.setCornerRadius(30f);
         registerBtn.setBackground(btnBg);
 
@@ -128,13 +129,13 @@ public class RegisterActivity extends AppCompatActivity {
         footerLayout.setPadding(0, 60, 0, 0);
 
         TextView hasAccountText = new TextView(this);
-        hasAccountText.setText("Déjà membre ? ");
+        hasAccountText.setText(R.string.already_member);
         hasAccountText.setTextColor(Color.GRAY);
         footerLayout.addView(hasAccountText);
 
         TextView loginLink = new TextView(this);
-        loginLink.setText("Se connecter");
-        loginLink.setTextColor(Color.parseColor("#FF9800"));
+        loginLink.setText(R.string.login_button);
+        loginLink.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
         loginLink.setTypeface(null, Typeface.BOLD);
         footerLayout.addView(loginLink);
 
@@ -157,32 +158,31 @@ public class RegisterActivity extends AppCompatActivity {
 
 
             if(name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
-                Toast.makeText(this, "Champs requis", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.fields_required_error, Toast.LENGTH_SHORT).show();
                 return;
             }
             if(!pass.equals(confirm)) {
-                Toast.makeText(this, "Les mots de passe ne correspondent pas", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.passwords_mismatch_error, Toast.LENGTH_SHORT).show();
                 return;
             }
 
             mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
-
                     FirebaseUser user = mAuth.getCurrentUser();
-
                     if (user != null) {
                         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                 .setDisplayName(name)
                                 .build();
+
                         user.updateProfile(profileUpdates)
-                                .addOnCompleteListener(profileTask -> {
-                                    if (profileTask.isSuccessful()) {
-                                        updateUI(user);
-                                    }
-                                });
+                                .addOnCompleteListener(profileTask -> updateUI(user));
                     }
                 } else {
-                    Toast.makeText(this, "Erreur: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    String errorMsg = getString(R.string.error_prefix) + "Inconnue";
+                    if (task.getException() != null) {
+                        errorMsg = getString(R.string.error_prefix) + " " + task.getException().getMessage();
+                    }
+                    Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                 }
             });
         });
@@ -203,10 +203,10 @@ public class RegisterActivity extends AppCompatActivity {
         EditText editText = new EditText(this);
         editText.setHint(hint);
         editText.setInputType(inputType);
-        editText.setBackground(createRoundedDrawable(Color.parseColor("#F5F6FA"), 30f));
+        editText.setBackground(createRoundedDrawable(ContextCompat.getColor(this, R.color.input_background), 30f));
         editText.setPadding(50, 40, 50, 40);
         editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        editText.setHintTextColor(Color.parseColor("#A0A0A0"));
+        editText.setHintTextColor(ContextCompat.getColor(this, R.color.hint_text));
         return editText;
     }
 
