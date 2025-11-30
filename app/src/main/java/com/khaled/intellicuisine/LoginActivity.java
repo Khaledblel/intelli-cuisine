@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -36,20 +37,17 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         mAuth = FirebaseAuth.getInstance();
 
-        // --- 1. CONFIGURATION DU CONTENEUR PRINCIPAL (SCROLLVIEW) ---
         ScrollView scrollView = new ScrollView(this);
         scrollView.setFillViewport(true);
         scrollView.setBackgroundColor(Color.WHITE);
 
-        // Layout vertical à l'intérieur du ScrollView
         LinearLayout contentLayout = new LinearLayout(this);
         contentLayout.setOrientation(LinearLayout.VERTICAL);
         contentLayout.setGravity(Gravity.CENTER_HORIZONTAL);
-        contentLayout.setPadding(80, 100, 80, 100); // Grosses marges sur les côtés
+        contentLayout.setPadding(80, 100, 80, 100);
         scrollView.addView(contentLayout);
 
         ImageView logoView = new ImageView(this);
-        // Assurez-vous d'avoir votre logo dans res/drawable/ic_logo_intellicuisine
         logoView.setImageResource(R.drawable.ic_logo_intellicuisine);
         LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(200, 200);
         logoParams.setMargins(0, 10, 0, 10);
@@ -57,10 +55,10 @@ public class LoginActivity extends AppCompatActivity {
         contentLayout.addView(logoView);
 
         TextView appNameView = new TextView(this);
-        appNameView.setText("IntelliCuisine");
+        appNameView.setText(R.string.app_name);
         appNameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         appNameView.setTypeface(null, Typeface.BOLD);
-        appNameView.setTextColor(Color.parseColor("#FF9800"));
+        appNameView.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
         appNameView.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams appNameParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         appNameParams.setMargins(0, 0, 0, 50);
@@ -68,33 +66,33 @@ public class LoginActivity extends AppCompatActivity {
         contentLayout.addView(appNameView);
 
         TextView titleView = new TextView(this);
-        titleView.setText("Bon retour !"); // "Welcome Back!"
+        titleView.setText(R.string.welcome_back);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28);
         titleView.setTypeface(null, Typeface.BOLD);
-        titleView.setTextColor(Color.parseColor("#1F1F1F"));
+        titleView.setTextColor(ContextCompat.getColor(this, R.color.dark_text));
         titleView.setGravity(Gravity.CENTER);
         titleView.setPadding(0, 60, 0, 20);
         contentLayout.addView(titleView);
 
         TextView subtitleView = new TextView(this);
-        subtitleView.setText("Connectez-vous pour continuer");
+        subtitleView.setText(R.string.login_subtitle);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         subtitleView.setTextColor(Color.GRAY);
         subtitleView.setGravity(Gravity.CENTER);
-        subtitleView.setPadding(0, 10, 0, 80); // Espace avant les inputs
+        subtitleView.setPadding(0, 10, 0, 80);
         contentLayout.addView(subtitleView);
 
-        EditText emailInput = createStyledEditText("Email", InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        EditText emailInput = createStyledEditText(getString(R.string.email_hint), InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         contentLayout.addView(emailInput);
 
         addVerticalSpace(contentLayout, 40);
 
-        EditText passInput = createStyledEditText("Mot de passe", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        EditText passInput = createStyledEditText(getString(R.string.password_hint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         contentLayout.addView(passInput);
 
         TextView forgotPass = new TextView(this);
-        forgotPass.setText("Mot de passe oublié ?");
-        forgotPass.setTextColor(Color.parseColor("#FF9800")); // Orange
+        forgotPass.setText(R.string.forgot_password);
+        forgotPass.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
         forgotPass.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         forgotPass.setGravity(Gravity.END);
         LinearLayout.LayoutParams fpParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -103,20 +101,17 @@ public class LoginActivity extends AppCompatActivity {
         contentLayout.addView(forgotPass);
 
         Button loginBtn = new Button(this);
-        loginBtn.setText("Se connecter");
+        loginBtn.setText(R.string.login_button);
         loginBtn.setTextColor(Color.WHITE);
         loginBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         loginBtn.setTypeface(null, Typeface.BOLD);
-        // Création du background gradient (Orange vers Rouge)
         GradientDrawable btnBg = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[] {Color.parseColor("#FF9800"), Color.parseColor("#FF5722")});
-        btnBg.setCornerRadius(30f); // Coins très ronds
+                new int[] {ContextCompat.getColor(this, R.color.primary_orange), ContextCompat.getColor(this, R.color.gradient_end_orange)});
+        btnBg.setCornerRadius(30f);
         loginBtn.setBackground(btnBg);
-        // Taille bouton
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 150);
         loginBtn.setLayoutParams(btnParams);
-        // Ombre (Elevation)
         loginBtn.setElevation(10f);
         contentLayout.addView(loginBtn);
 
@@ -126,19 +121,16 @@ public class LoginActivity extends AppCompatActivity {
         footerLayout.setPadding(0, 60, 0, 0);
 
         TextView noAccountText = new TextView(this);
-        noAccountText.setText("Pas encore de compte ? ");
+        noAccountText.setText(R.string.no_account);
         noAccountText.setTextColor(Color.GRAY);
         footerLayout.addView(noAccountText);
 
         TextView registerLink = new TextView(this);
-        registerLink.setText("S'inscrire");
-        registerLink.setTextColor(Color.parseColor("#FF9800"));
+        registerLink.setText(R.string.register_link);
+        registerLink.setTextColor(ContextCompat.getColor(this, R.color.primary_orange));
         registerLink.setTypeface(null, Typeface.BOLD);
         footerLayout.addView(registerLink);
-
         contentLayout.addView(footerLayout);
-
-        // Définir la vue
         setContentView(scrollView);
 
         ViewCompat.setOnApplyWindowInsetsListener(contentLayout, (v, insets) -> {
@@ -151,7 +143,7 @@ public class LoginActivity extends AppCompatActivity {
             String email = emailInput.getText().toString().trim();
             String password = passInput.getText().toString().trim();
             if(email.isEmpty() || password.isEmpty()){
-                Toast.makeText(LoginActivity.this, "Remplissez les champs", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, R.string.fill_fields_error, Toast.LENGTH_SHORT).show();
                 return;
             }
             mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
@@ -160,14 +152,17 @@ public class LoginActivity extends AppCompatActivity {
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                 } else {
-                    Toast.makeText(LoginActivity.this, "Erreur: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    String errorMessage = getString(R.string.error_prefix) + "Inconnue";
+
+                    if (task.getException() != null) {
+                        errorMessage = getString(R.string.error_prefix) + " " + task.getException().getMessage();
+                    }
+                    Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                 }
             });
         });
 
-        registerLink.setOnClickListener(v -> {
-            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
-        });
+        registerLink.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }
 
 
@@ -175,10 +170,10 @@ public class LoginActivity extends AppCompatActivity {
         EditText editText = new EditText(this);
         editText.setHint(hint);
         editText.setInputType(inputType);
-        editText.setBackground(createRoundedDrawable(Color.parseColor("#F5F6FA"), 30f)); // Fond gris très clair
-        editText.setPadding(50, 40, 50, 40); // Padding interne confortable
+        editText.setBackground(createRoundedDrawable(ContextCompat.getColor(this, R.color.input_background), 30f));
+        editText.setPadding(50, 40, 50, 40);
         editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        editText.setHintTextColor(Color.parseColor("#A0A0A0"));
+        editText.setHintTextColor(ContextCompat.getColor(this, R.color.hint_text));
         return editText;
     }
 
