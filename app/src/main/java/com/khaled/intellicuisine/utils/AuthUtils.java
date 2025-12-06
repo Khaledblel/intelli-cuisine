@@ -18,6 +18,7 @@ public class AuthUtils {
             switch (errorCode) {
                 case "ERROR_INVALID_EMAIL":
                 case "invalid-email":
+                case "ERROR_MALFORMED_EMAIL":
                     return context.getString(R.string.error_invalid_email);
 
                 case "ERROR_WRONG_PASSWORD":
