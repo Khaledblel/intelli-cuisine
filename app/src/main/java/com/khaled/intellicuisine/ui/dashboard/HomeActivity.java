@@ -1,18 +1,18 @@
 package com.khaled.intellicuisine.ui.dashboard;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.khaled.intellicuisine.R;
-import com.khaled.intellicuisine.ui.auth.LoginActivity;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -22,33 +22,63 @@ public class HomeActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
-        // --- 1. GESTION DE L'AFFICHAGE (EdgeToEdge) ---
-        // Ce bloc permet d'éviter que le contenu ne soit caché par les barres système
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // --- 2. LOGIQUE DE DÉCONNEXION ---
-        Button btnLogout = findViewById(R.id.btnLogout);
+        Fragment homeFragment = new HomeFragment();
+        Fragment inventoryFragment = new InventoryFragment();
+        Fragment favoritesFragment = new FavoritesFragment();
+        Fragment profileFragment = new ProfileFragment();
 
-        // Si btnLogout est null, vérifiez que l'ID dans le XML est bien @+id/btnLogout
-        if (btnLogout != null) {
-            btnLogout.setOnClickListener(v -> {
-                // A. Déconnecter l'utilisateur de Firebase
-                FirebaseAuth.getInstance().signOut();
+        loadFragment(homeFragment);
 
-                // B. Retourner à l'écran de connexion
-                Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+        LinearLayout navHome = findViewById(R.id.navHome);
+        LinearLayout navInventory = findViewById(R.id.navInventory);
+        LinearLayout navFavorites = findViewById(R.id.navFavorites);
+        LinearLayout navProfile = findViewById(R.id.navProfile);
 
-                // C. Nettoyer la pile d'activités
-                // (Empêche l'utilisateur de revenir sur Home en faisant "Retour")
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        navHome.setOnClickListener(v -> {
+            loadFragment(homeFragment);
+            updateNavUI(navHome, navInventory, navFavorites, navProfile);
+        });
 
-                startActivity(intent);
-                finish(); // Ferme proprement l'activité actuelle
-            });
+        navInventory.setOnClickListener(v -> {
+            loadFragment(inventoryFragment);
+            updateNavUI(navInventory, navHome, navFavorites, navProfile);
+        });
+
+        navFavorites.setOnClickListener(v -> {
+            loadFragment(favoritesFragment);
+            updateNavUI(navFavorites, navHome, navInventory, navProfile);
+        });
+
+        navProfile.setOnClickListener(v -> {
+            loadFragment(profileFragment);
+            updateNavUI(navProfile, navHome, navInventory, navFavorites);
+        });
+    }
+
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commit();
+    }
+
+    private void updateNavUI(LinearLayout selected, LinearLayout... others) {
+        setSelected(selected, true);
+        for (LinearLayout other : others) {
+            setSelected(other, false);
         }
+    }
+
+    private void setSelected(LinearLayout container, boolean isSelected) {
+        int color = isSelected ? getColor(R.color.primary_orange) : getColor(R.color.hint_text);
+        ImageView icon = (ImageView) container.getChildAt(0);
+        TextView text = (TextView) container.getChildAt(1);
+        icon.setColorFilter(color);
+        text.setTextColor(color);
     }
 }
