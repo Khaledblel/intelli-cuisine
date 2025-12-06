@@ -44,4 +44,29 @@
     <string name="error_network_request_failed">Erreur réseau. Vérifiez votre connexion internet.</string>
     <string name="error_too_many_requests">Trop de tentatives. Veuillez réessayer plus tard.</string>
     <string name="error_unknown">Une erreur inconnue est survenue.</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- Profile Fragment -->
+    <string name="profile_title">Compte</string>
+    <string name="label_full_name">Nom</string>
+    <string name="label_email">Adresse email</string>
+    <string name="action_change_password">Changer le mot de passe</string>
+    <string name="action_logout">Se déconnecter</string>
+    <string name="action_done">Terminé</string>
+    <string name="success_name_updated">Nom mis à jour avec succès</string>
+    <string name="success_email_verification_sent">Email de vérification envoyé. Veuillez valider le lien et vous reconnecter.</string>
+    <string name="success_password_updated">Mot de passe mis à jour. Veuillez vous reconnecter.</string>
+    <string name="error_login_required">Veuillez vous reconnecter pour modifier votre email (sécurité).</string>
+    <string name="error_reauth_failed">Authentification échouée. Vérifiez votre mot de passe actuel.</string>
+    <string name="placeholder_name">Nom de l\'utilisateur</string>
+    <string name="placeholder_email">exemple@email.com</string>
+    <string name="current_password_hint">Mot de passe actuel</string>
+    <string name="new_password_hint">Nouveau mot de passe</string>
+    <string name="confirm_new_password_hint">Confirmer le nouveau mot de passe</string>
+
+    <string name="action_delete_account">Supprimer le compte</string>
+    <string name="delete_account_warning">Cette action est irréversible. Entrez votre mot de passe pour confirmer.</string>
+    <string name="delete_button">Supprimer définitivement</string>
+    <string name="success_account_deleted">Compte supprimé avec succès.</string>
 </resources>
