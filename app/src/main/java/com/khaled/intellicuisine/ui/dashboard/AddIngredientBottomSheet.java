@@ -130,7 +130,7 @@ public class AddIngredientBottomSheet extends BottomSheetDialogFragment {
         btnSaveAll.setText("Envoi...");
 
         batch.commit().addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Frigo mis à jour !", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Iventaire mise à jour !", Toast.LENGTH_SHORT).show();
             dismiss();
         }).addOnFailureListener(e -> {
             Toast.makeText(getContext(), "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show();
