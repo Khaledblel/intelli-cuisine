@@ -59,6 +59,11 @@ public class HomeActivity extends AppCompatActivity {
             loadFragment(profileFragment);
             updateNavUI(navProfile, navHome, navInventory, navFavorites);
         });
+
+        findViewById(R.id.fabAdd).setOnClickListener(v -> {
+            AddIngredientBottomSheet bottomSheet = new AddIngredientBottomSheet();
+            bottomSheet.show(getSupportFragmentManager(), "addIngredientTag");
+        });
     }
 
     private void loadFragment(Fragment fragment) {
