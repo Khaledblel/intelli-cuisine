@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:weightSum="5"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
+
+    <EditText
+        android:id="@+id/etRowName"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_weight="4"
+        android:hint="Nom (ex: Tomates)"
+        android:background="@drawable/bg_input_rounded"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:textSize="14sp"
+        android:layout_marginEnd="8dp"
+        android:inputType="textCapSentences"/>
+
+    <EditText
+        android:id="@+id/etRowQty"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_weight="1"
+        android:hint="Qté"
+        android:background="@drawable/bg_input_rounded"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:inputType="text"/>
+    
+    <ImageView
+        android:id="@+id/btnRemoveRow"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@android:drawable/ic_delete"
+        android:layout_marginStart="8dp"
+        app:tint="#F44336"
+        android:clickable="true"
+        android:focusable="true"
+        xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
+</LinearLayout>
