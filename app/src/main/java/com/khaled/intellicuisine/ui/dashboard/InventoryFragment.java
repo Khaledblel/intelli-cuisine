@@ -1,22 +1,24 @@
 package com.khaled.intellicuisine.ui.dashboard;
 
+import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.Toast;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.text.InputType;
-import android.util.TypedValue;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,8 +31,6 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.khaled.intellicuisine.R;
 import com.khaled.intellicuisine.adapters.IngredientAdapter;
 import com.khaled.intellicuisine.models.Ingredient;
-import android.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -151,7 +151,7 @@ public class InventoryFragment extends Fragment {
         nameInput.setPadding(50, 40, 50, 40);
         nameInput.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         nameInput.setTextColor(ContextCompat.getColor(getContext(), R.color.dark_text));
-        
+
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 0, 0, padding / 2);
         nameInput.setLayoutParams(params);
@@ -165,7 +165,7 @@ public class InventoryFragment extends Fragment {
         qtyInput.setPadding(50, 40, 50, 40);
         qtyInput.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         qtyInput.setTextColor(ContextCompat.getColor(getContext(), R.color.dark_text));
-        
+
         LinearLayout.LayoutParams lastParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lastParams.setMargins(0, 0, 0, padding);
         qtyInput.setLayoutParams(lastParams);
@@ -176,7 +176,7 @@ public class InventoryFragment extends Fragment {
         btnSave.setTextColor(Color.WHITE);
         btnSave.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         btnSave.setTypeface(null, android.graphics.Typeface.BOLD);
-        
+
         GradientDrawable btnBg = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{
@@ -200,8 +200,7 @@ public class InventoryFragment extends Fragment {
                 return;
             }
 
-            performUpdate(ingredient, newName, newQty);
-            dialog.dismiss();
+            performUpdate(ingredient, newName, newQty, dialog, btnSave);
         });
         layout.addView(btnSave);
 
@@ -209,28 +208,58 @@ public class InventoryFragment extends Fragment {
         dialog.show();
     }
 
-    private void performUpdate(Ingredient ingredient, String newName, String newQty) {
+    private void performUpdate(Ingredient ingredient, String newName, String newQty, BottomSheetDialog dialog, Button btnSave) {
         if (mAuth.getCurrentUser() == null || ingredient.getId() == null) return;
 
+        btnSave.setEnabled(false);
+        btnSave.setText("Vérification...");
+
         String userId = mAuth.getCurrentUser().getUid();
+        String nameToSave = newName.toLowerCase().trim();
+
+        String currentName = ingredient.getName();
+        if (currentName != null) {
+            currentName = currentName.toLowerCase().trim();
+        }
+
+        if (nameToSave.equals(currentName)) {
+            updateFirestore(userId, ingredient.getId(), nameToSave, newQty, dialog, btnSave);
+            return;
+        }
 
         db.collection("users").document(userId).collection("ingredients")
-                .document(ingredient.getId())
-                .update("name", newName, "quantity", newQty)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Ingrédient mis à jour", Toast.LENGTH_SHORT).show();
+                .whereEqualTo("name", nameToSave)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        Toast.makeText(getContext(), "L'ingrédient '" + newName + "' existe déjà.", Toast.LENGTH_LONG).show();
+                        btnSave.setEnabled(true);
+                        btnSave.setText("Enregistrer");
+                    } else {
+                        updateFirestore(userId, ingredient.getId(), nameToSave, newQty, dialog, btnSave);
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Erreur lors de la mise à jour", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Erreur de vérification réseau", Toast.LENGTH_SHORT).show();
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Enregistrer");
                 });
     }
 
-    private GradientDrawable createRoundedDrawable(int color, float radius) {
-        GradientDrawable shape = new GradientDrawable();
-        shape.setShape(GradientDrawable.RECTANGLE);
-        shape.setCornerRadius(radius);
-        shape.setColor(color);
-        return shape;
+    private void updateFirestore(String userId, String docId, String name, String qty, BottomSheetDialog dialog, Button btnSave) {
+        db.collection("users").document(userId).collection("ingredients")
+                .document(docId)
+                .update("name", name,
+                        "quantity", qty)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Ingrédient mis à jour", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Erreur lors de la mise à jour", Toast.LENGTH_SHORT).show();
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Enregistrer");
+                });
     }
 
     private void performDelete(Ingredient ingredient) {
@@ -250,6 +279,8 @@ public class InventoryFragment extends Fragment {
     }
 
     private void showDeleteConfirmation(Ingredient ingredient) {
+        if (getContext() == null) return;
+
         AlertDialog dialog = new AlertDialog.Builder(getContext())
                 .setTitle("Supprimer l'ingrédient ?")
                 .setMessage("Voulez-vous vraiment retirer '" + ingredient.getName() + "' ?")
@@ -262,6 +293,14 @@ public class InventoryFragment extends Fragment {
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(
                 ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
         );
+    }
+
+    private GradientDrawable createRoundedDrawable(int color, float radius) {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setShape(GradientDrawable.RECTANGLE);
+        shape.setCornerRadius(radius);
+        shape.setColor(color);
+        return shape;
     }
 
     @Override

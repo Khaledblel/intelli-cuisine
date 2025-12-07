@@ -47,7 +47,11 @@ public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.Vi
 
         String name = ingredient.getName();
         if (name != null && !name.isEmpty()) {
-            name = name.substring(0, 1).toUpperCase() + name.substring(1);
+            if (name.length() > 1) {
+                name = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+            } else {
+                name = name.toUpperCase();
+            }
         }
 
         holder.tvName.setText(name);
