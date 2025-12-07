@@ -22,6 +22,7 @@ public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.Vi
 
     public interface OnIngredientActionListener {
         void onDelete(Ingredient ingredient);
+        void onEdit(Ingredient ingredient);
     }
 
     public void setOnIngredientActionListener(OnIngredientActionListener listener) {
@@ -51,6 +52,12 @@ public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.Vi
 
         holder.tvName.setText(name);
         holder.tvQuantity.setText("Qté : " + ingredient.getQuantity());
+
+        holder.itemView.setOnClickListener(v -> {
+            if (actionListener != null) {
+                actionListener.onEdit(ingredient);
+            }
+        });
 
         holder.btnDelete.setOnClickListener(v -> {
             if (actionListener != null) {
