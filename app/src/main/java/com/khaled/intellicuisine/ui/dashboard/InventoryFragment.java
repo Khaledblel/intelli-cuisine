@@ -1,66 +1,148 @@
 package com.khaled.intellicuisine.ui.dashboard;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.khaled.intellicuisine.R;
+import com.khaled.intellicuisine.adapters.IngredientAdapter;
+import com.khaled.intellicuisine.models.Ingredient;
+import android.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link InventoryFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class InventoryFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private RecyclerView recyclerView;
+    private IngredientAdapter adapter;
+    private ProgressBar progressBar;
+    private LinearLayout emptyStateView;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private ListenerRegistration firestoreListener;
 
     public InventoryFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment InventoryFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static InventoryFragment newInstance(String param1, String param2) {
-        InventoryFragment fragment = new InventoryFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_inventory, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+
+        recyclerView = view.findViewById(R.id.recyclerViewInventory);
+        progressBar = view.findViewById(R.id.progressBar);
+        emptyStateView = view.findViewById(R.id.emptyStateView);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new IngredientAdapter();
+        recyclerView.setAdapter(adapter);
+
+        adapter.setOnIngredientActionListener(ingredient -> showDeleteConfirmation(ingredient));
+
+        loadIngredientsRealtime();
+    }
+
+    private void loadIngredientsRealtime() {
+        if (mAuth.getCurrentUser() == null) {
+            progressBar.setVisibility(View.GONE);
+            return;
+        }
+
+        String userId = mAuth.getCurrentUser().getUid();
+
+        firestoreListener = db.collection("users").document(userId).collection("ingredients")
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Toast.makeText(getContext(), "Erreur chargement", Toast.LENGTH_SHORT).show();
+                        progressBar.setVisibility(View.GONE);
+                        return;
+                    }
+
+                    if (value != null) {
+                        List<Ingredient> list = new ArrayList<>();
+                        for (DocumentSnapshot doc : value.getDocuments()) {
+                            Ingredient i = doc.toObject(Ingredient.class);
+                            if (i != null) {
+                                i.setId(doc.getId());
+                                list.add(i);
+                            }
+                        }
+
+                        adapter.setIngredients(list);
+                        progressBar.setVisibility(View.GONE);
+
+                        if (list.isEmpty()) {
+                            emptyStateView.setVisibility(View.VISIBLE);
+                            recyclerView.setVisibility(View.GONE);
+                        } else {
+                            emptyStateView.setVisibility(View.GONE);
+                            recyclerView.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+    }
+
+    private void performDelete(Ingredient ingredient) {
+        if (mAuth.getCurrentUser() == null || ingredient.getId() == null) return;
+
+        String userId = mAuth.getCurrentUser().getUid();
+
+        db.collection("users").document(userId).collection("ingredients")
+                .document(ingredient.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Ingrédient supprimé", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void showDeleteConfirmation(Ingredient ingredient) {
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setTitle("Supprimer l'ingrédient ?")
+                .setMessage("Voulez-vous vraiment retirer '" + ingredient.getName() + "' ?")
+                .setPositiveButton("Supprimer", (d, which) -> performDelete(ingredient))
+                .setNegativeButton("Annuler", null)
+                .show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(
+                ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
+        );
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(
+                ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
+        );
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (firestoreListener != null) {
+            firestoreListener.remove();
+        }
     }
 }
