@@ -69,4 +69,21 @@
     <string name="delete_account_warning">Cette action est irréversible. Entrez votre mot de passe pour confirmer.</string>
     <string name="delete_button">Supprimer définitivement</string>
     <string name="success_account_deleted">Compte supprimé avec succès.</string>
+
+    <!-- Home Fragment -->
+    <string name="home_greeting">Bonjour, %s</string>
+    <string name="home_card_title">À vos fourneaux,\net cuisinons! 😍</string>
+    <string name="home_card_subtitle">Préparez un délicieux repas aujourd\'hui</string>
+    <string name="home_generate_btn">Générer une recette</string>
+    <string name="home_recent_title">Recettes récentes</string>
+    <string name="home_see_all">Voir tout</string>
+
+    <!-- Recipe Generation -->
+    <string name="recipe_items_label">Ingrédients</string>
+    <string name="recipe_time_label">Temps</string>
+    <string name="recipe_difficulty_label">Difficulté</string>
+    <string name="tab_ingredients">Ingrédients</string>
+    <string name="tab_instructions">Instructions</string>
+    <string name="tab_tips">Conseils</string>
+    <string name="btn_start_recipe">Commencer la recette</string>
 </resources>

@@ -7,4 +7,11 @@
     <color name="dark_text">#1F1F1F</color>
     <color name="input_background">#F5F6FA</color>
     <color name="hint_text">#A0A0A0</color>
+
+    <color name="beige_card_bg">#F3EFE0</color>
+    <color name="yellow_btn_bg">#FFD54F</color>
+    <color name="yellow_btn_text">#4E342E</color>
+
+    <color name="recipe_bg_pink">#FFEBEE</color>
+    <color name="recipe_tab_selected">#009688</color>
 </resources>
