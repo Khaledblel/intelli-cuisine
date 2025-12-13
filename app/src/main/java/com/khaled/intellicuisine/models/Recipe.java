@@ -14,7 +14,7 @@ public class Recipe implements Serializable {
     private List<Map<String, Object>> ingredients;
     private List<Map<String, Object>> steps;
     private List<String> tips;
-    private String imageBase64;
+    private String imageUrl;
     private long createdAt;
 
     public Recipe() { }
@@ -44,8 +44,8 @@ public class Recipe implements Serializable {
     public List<String> getTips() { return tips; }
     public void setTips(List<String> tips) { this.tips = tips; }
 
-    public String getImageBase64() { return imageBase64; }
-    public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }

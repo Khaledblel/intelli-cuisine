@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
@@ -36,6 +37,9 @@ import com.google.firebase.ai.type.ResponseModality;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.khaled.intellicuisine.R;
 import com.khaled.intellicuisine.models.Recipe;
 
@@ -77,7 +81,7 @@ public class RecipeGenerationActivity extends AppCompatActivity {
     private String currentDifficulty;
     private int currentTime;
     private String currentServings;
-    private String currentImageBase64;
+    private String currentImageUrl;
     private String currentRecipeId;
     private boolean isFavorite = false;
 
@@ -143,9 +147,6 @@ public class RecipeGenerationActivity extends AppCompatActivity {
             for (JSONObject step : instructionsList) {
                 try {
                     JSONObject cleanStep = new JSONObject(step.toString());
-                    if (cleanStep.has("image_base64")) {
-                        cleanStep.remove("image_base64");
-                    }
                     stepsArray.put(cleanStep);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -154,17 +155,16 @@ public class RecipeGenerationActivity extends AppCompatActivity {
             
             intent.putExtra("STEPS_DATA", stepsArray.toString());
             intent.putExtra("RECIPE_TITLE", currentTitle);
+            intent.putExtra("RECIPE_IMAGE_URL", currentImageUrl);
             
-            if (currentImageBase64 != null && !currentImageBase64.isEmpty()) {
-                try {
-                    byte[] decodedString = Base64.decode(currentImageBase64, Base64.DEFAULT);
-                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                    String imagePath = saveImageToCache(decodedByte);
-                    if (imagePath != null) {
-                        intent.putExtra("RECIPE_IMAGE_PATH", imagePath);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            // Still pass local path for immediate loading if available (optional optimization)
+            // Save image to cache and pass path to avoid TransactionTooLargeException
+            // (We can keep this logic if we have the bitmap in memory, but primarily rely on URL now)
+             if (headerBg.getBackground() instanceof BitmapDrawable) {
+                Bitmap bitmap = ((BitmapDrawable) headerBg.getBackground()).getBitmap();
+                String imagePath = saveImageToCache(bitmap);
+                if (imagePath != null) {
+                    intent.putExtra("RECIPE_IMAGE_PATH", imagePath);
                 }
             }
             
@@ -248,7 +248,7 @@ public class RecipeGenerationActivity extends AppCompatActivity {
         currentDifficulty = recipe.getDifficulty();
         currentTime = recipe.getTimeMinutes();
         currentServings = recipe.getServings();
-        currentImageBase64 = recipe.getImageBase64();
+        currentImageUrl = recipe.getImageUrl();
 
         tvRecipeTitle.setText(currentTitle);
         tvDifficulty.setText(currentDifficulty);
@@ -278,15 +278,20 @@ public class RecipeGenerationActivity extends AppCompatActivity {
         servingsText = currentServings;
         populateTipsUI();
 
-        if (currentImageBase64 != null && !currentImageBase64.isEmpty()) {
-            try {
-                byte[] decodedString = Base64.decode(currentImageBase64, Base64.DEFAULT);
-                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                headerBg.setBackground(new BitmapDrawable(getResources(), decodedByte));
-                imgFood.setVisibility(View.GONE);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (currentImageUrl != null && !currentImageUrl.isEmpty()) {
+            new Thread(() -> {
+                try {
+                    java.net.URL url = new java.net.URL(currentImageUrl);
+                    Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    runOnUiThread(() -> {
+                        headerBg.setBackground(new BitmapDrawable(getResources(), bmp));
+                        headerBg.setBackgroundTintList(null);
+                        imgFood.setVisibility(View.GONE);
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
 
         loadingView.setVisibility(View.GONE);
@@ -644,23 +649,29 @@ public class RecipeGenerationActivity extends AppCompatActivity {
 
                 if (generatedImage != null) {
                     headerBg.setBackground(new BitmapDrawable(getResources(), generatedImage));
+                    headerBg.setBackgroundTintList(null);
                     imgFood.setVisibility(View.GONE);
 
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    generatedImage.compress(Bitmap.CompressFormat.JPEG, 50, baos);
-                    byte[] data = baos.toByteArray();
-                    currentImageBase64 = Base64.encodeToString(data, Base64.DEFAULT);
+                    String path = "recipes/" + System.currentTimeMillis() + ".jpg";
+                    uploadImageToStorage(generatedImage, path, url -> {
+                        currentImageUrl = url;
+                        saveRecipeToFirestore();
+                        
+                        loadingView.setVisibility(View.GONE);
+                        contentScrollView.setVisibility(View.VISIBLE);
+                        btnStart.setVisibility(View.VISIBLE);
+                        btnStart.setEnabled(true);
+                    });
                 } else {
                     imgFood.setVisibility(View.VISIBLE);
-                    currentImageBase64 = "";
+                    currentImageUrl = "";
+                    saveRecipeToFirestore();
+                    
+                    loadingView.setVisibility(View.GONE);
+                    contentScrollView.setVisibility(View.VISIBLE);
+                    btnStart.setVisibility(View.VISIBLE);
+                    btnStart.setEnabled(true);
                 }
-                
-                saveRecipeToFirestore();
-                
-                loadingView.setVisibility(View.GONE);
-                contentScrollView.setVisibility(View.VISIBLE);
-                btnStart.setVisibility(View.VISIBLE);
-                btnStart.setEnabled(true);
             }
 
             @Override
@@ -673,10 +684,39 @@ public class RecipeGenerationActivity extends AppCompatActivity {
                 imgFood.setVisibility(View.VISIBLE);
                 Toast.makeText(RecipeGenerationActivity.this, "Image non générée, affichage de la recette.", Toast.LENGTH_SHORT).show();
                 
-                currentImageBase64 = "";
+                currentImageUrl = "";
                 saveRecipeToFirestore();
             }
         }, executor);
+    }
+
+    private void uploadImageToStorage(Bitmap bitmap, String path, OnImageUploadListener listener) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+        byte[] data = baos.toByteArray();
+
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference imageRef = storageRef.child(path);
+
+        UploadTask uploadTask = imageRef.putBytes(data);
+        uploadTask.continueWithTask(task -> {
+            if (!task.isSuccessful()) {
+                throw task.getException();
+            }
+            return imageRef.getDownloadUrl();
+        }).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Uri downloadUri = task.getResult();
+                if (listener != null) listener.onSuccess(downloadUri.toString());
+            } else {
+                Toast.makeText(RecipeGenerationActivity.this, "Upload failed", Toast.LENGTH_SHORT).show();
+                if (listener != null) listener.onSuccess("");
+            }
+        });
+    }
+
+    interface OnImageUploadListener {
+        void onSuccess(String url);
     }
 
     private void saveRecipeToFirestore() {
@@ -688,7 +728,7 @@ public class RecipeGenerationActivity extends AppCompatActivity {
         recipe.setDifficulty(currentDifficulty);
         recipe.setTimeMinutes(currentTime);
         recipe.setServings(currentServings);
-        recipe.setImageBase64(currentImageBase64);
+        recipe.setImageUrl(currentImageUrl);
         recipe.setCreatedAt(System.currentTimeMillis());
         recipe.setTips(tipsList);
 
@@ -780,7 +820,7 @@ public class RecipeGenerationActivity extends AppCompatActivity {
             recipe.setDifficulty(currentDifficulty);
             recipe.setTimeMinutes(currentTime);
             recipe.setServings(currentServings);
-            recipe.setImageBase64(currentImageBase64);
+            recipe.setImageUrl(currentImageUrl);
             recipe.setCreatedAt(System.currentTimeMillis());
             recipe.setTips(tipsList);
 

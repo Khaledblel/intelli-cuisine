@@ -45,19 +45,26 @@ public class FavoriteRecipeAdapter extends RecyclerView.Adapter<FavoriteRecipeAd
         holder.tvTime.setText(recipe.getTimeMinutes() + " Min");
         holder.tvDifficulty.setText(recipe.getDifficulty());
 
-        if (recipe.getImageBase64() != null && !recipe.getImageBase64().isEmpty()) {
-            try {
-                byte[] decodedString = Base64.decode(recipe.getImageBase64(), Base64.DEFAULT);
-                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                holder.imgRecipe.setImageBitmap(decodedByte);
-                holder.imgRecipe.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                holder.imgRecipe.setPadding(0, 0, 0, 0);
-                holder.imgRecipe.setImageTintList(null);
-            } catch (Exception e) {
-                setPlaceholder(holder);
-            }
-        } else {
-            setPlaceholder(holder);
+        setPlaceholder(holder);
+
+        if (recipe.getImageUrl() != null && !recipe.getImageUrl().isEmpty()) {
+            holder.imgRecipe.setTag(recipe.getImageUrl());
+            new Thread(() -> {
+                try {
+                    java.net.URL url = new java.net.URL(recipe.getImageUrl());
+                    Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    holder.itemView.post(() -> {
+                        if (recipe.getImageUrl().equals(holder.imgRecipe.getTag())) {
+                            holder.imgRecipe.setImageBitmap(bmp);
+                            holder.imgRecipe.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                            holder.imgRecipe.setPadding(0, 0, 0, 0);
+                            holder.imgRecipe.setImageTintList(null);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
 
         holder.itemView.setOnClickListener(v -> {

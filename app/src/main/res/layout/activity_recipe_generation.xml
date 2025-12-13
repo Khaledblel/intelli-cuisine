@@ -55,6 +55,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="320dp"
                 android:background="@drawable/bg_header_rounded"
+                android:backgroundTint="#FFF3E0"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView

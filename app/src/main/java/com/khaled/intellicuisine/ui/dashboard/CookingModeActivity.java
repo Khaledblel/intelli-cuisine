@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.util.Base64;
 import android.os.Build;
 import android.os.Bundle;
@@ -54,6 +55,9 @@ import com.google.firebase.ai.type.ResponseModality;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.khaled.intellicuisine.R;
 import com.khaled.intellicuisine.services.TimerService;
 
@@ -144,14 +148,16 @@ public class CookingModeActivity extends AppCompatActivity {
         if (imagePath != null) {
             finalRecipeBitmap = BitmapFactory.decodeFile(imagePath);
         } else {
-            String base64Image = getIntent().getStringExtra("RECIPE_IMAGE_BASE64");
-            if (base64Image != null && !base64Image.isEmpty()) {
-                try {
-                    byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
-                    finalRecipeBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            String imageUrl = getIntent().getStringExtra("RECIPE_IMAGE_URL");
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                new Thread(() -> {
+                    try {
+                        java.net.URL url = new java.net.URL(imageUrl);
+                        finalRecipeBitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
             }
         }
 
@@ -192,7 +198,7 @@ public class CookingModeActivity extends AppCompatActivity {
             public void onStartTimer(long duration, int stepIndex) {
                 if (isBound && timerService != null) {
                     Intent intent = new Intent(CookingModeActivity.this, TimerService.class);
-                    startService(intent); // Ensure service is started
+                    startService(intent);
                     timerService.startTimer(duration, stepIndex, recipeTitle);
                 }
             }
@@ -267,12 +273,9 @@ public class CookingModeActivity extends AppCompatActivity {
         viewPager.setVisibility(View.INVISIBLE);
 
         JSONObject step0 = stepsList.get(0);
-        if (step0.has("image_base64") && !step0.optString("image_base64").isEmpty()) {
-            String base64 = step0.optString("image_base64");
-            Bitmap bmp = decodeBase64(base64);
-            if (bmp != null) {
-                adapter.setImage(0, bmp);
-            }
+        if (step0.has("image_url") && !step0.optString("image_url").isEmpty()) {
+            String url = step0.optString("image_url");
+            loadImageFromUrl(0, url);
             
             loadingView.setVisibility(View.GONE);
             viewPager.setVisibility(View.VISIBLE);
@@ -294,15 +297,28 @@ public class CookingModeActivity extends AppCompatActivity {
 
     private void checkAndGenerateStepImage(int index) {
         JSONObject step = stepsList.get(index);
-        if (step.has("image_base64") && !step.optString("image_base64").isEmpty()) {
-            String base64 = step.optString("image_base64");
-            Bitmap bmp = decodeBase64(base64);
-            if (bmp != null) {
-                adapter.setImage(index, bmp);
-            }
+        if (step.has("image_url") && !step.optString("image_url").isEmpty()) {
+            String url = step.optString("image_url");
+            loadImageFromUrl(index, url);
         } else {
             generateStepImage(index, null);
         }
+    }
+
+    private void loadImageFromUrl(int index, String urlString) {
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL(urlString);
+                Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                runOnUiThread(() -> {
+                    if (bmp != null) {
+                        adapter.setImage(index, bmp);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private Bitmap decodeBase64(String base64) {
@@ -356,7 +372,10 @@ public class CookingModeActivity extends AppCompatActivity {
 
                 if (generatedImage != null) {
                     adapter.setImage(stepIndex, generatedImage);
-                    saveStepImageToFirestore(stepIndex, generatedImage);
+                    String path = "recipes/" + recipeId + "/steps/step_" + stepIndex + "_" + System.currentTimeMillis() + ".jpg";
+                    uploadImageToStorage(generatedImage, path, url -> {
+                        saveStepImageToFirestore(stepIndex, url);
+                    });
                 }
 
                 if (onComplete != null) onComplete.run();
@@ -370,16 +389,39 @@ public class CookingModeActivity extends AppCompatActivity {
         }, executor);
     }
 
-    private void saveStepImageToFirestore(int stepIndex, Bitmap bitmap) {
+    private void uploadImageToStorage(Bitmap bitmap, String path, OnImageUploadListener listener) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+        byte[] data = baos.toByteArray();
+
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference imageRef = storageRef.child(path);
+
+        UploadTask uploadTask = imageRef.putBytes(data);
+        uploadTask.continueWithTask(task -> {
+            if (!task.isSuccessful()) {
+                throw task.getException();
+            }
+            return imageRef.getDownloadUrl();
+        }).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Uri downloadUri = task.getResult();
+                if (listener != null) listener.onSuccess(downloadUri.toString());
+            } else {
+                if (listener != null) listener.onSuccess("");
+            }
+        });
+    }
+
+    interface OnImageUploadListener {
+        void onSuccess(String url);
+    }
+
+    private void saveStepImageToFirestore(int stepIndex, String imageUrl) {
         if (recipeId == null || FirebaseAuth.getInstance().getCurrentUser() == null) return;
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
-        byte[] data = baos.toByteArray();
-        String base64Image = Base64.encodeToString(data, Base64.DEFAULT);
-
         try {
-            stepsList.get(stepIndex).put("image_base64", base64Image);
+            stepsList.get(stepIndex).put("image_url", imageUrl);
         } catch (Exception e) { e.printStackTrace(); }
 
         List<Map<String, Object>> updatedSteps = new ArrayList<>();
@@ -409,7 +451,7 @@ public class CookingModeActivity extends AppCompatActivity {
         Map<String, Object> map = new HashMap<>();
         map.put("etape_index", step.optInt("etape_index"));
         map.put("description", step.optString("description"));
-        map.put("image_base64", step.optString("image_base64"));
+        map.put("image_url", step.optString("image_url"));
 
         JSONArray ingArr = step.optJSONArray("ingredients_used");
         if (ingArr != null) {
@@ -488,7 +530,6 @@ public class CookingModeActivity extends AppCompatActivity {
         long timeLeft = timerService.getTimeLeft();
         boolean isRunning = timerService.isRunning();
 
-        // Find the ViewHolder for the active step
         RecyclerView rv = (RecyclerView) viewPager.getChildAt(0);
         if (rv != null) {
             RecyclerView.ViewHolder vh = rv.findViewHolderForAdapterPosition(activeStepIndex);
@@ -546,11 +587,9 @@ public class CookingModeActivity extends AppCompatActivity {
                 holder.imgStep.setImageTintList(ContextCompat.getColorStateList(holder.itemView.getContext(), R.color.hint_text));
             }
 
-            // Check if this step has the running timer
             if (isBound && timerService != null && timerService.getCurrentStepIndex() == position) {
                 holder.updateTimerState(timerService.getTimeLeft(), timerService.isRunning());
             } else {
-                // Reset to default state for this step
                 JSONObject timerObj = step.optJSONObject("timer");
                 if (timerObj != null) {
                     long duration = timerObj.optLong("duree_secondes", 0) * 1000;
@@ -623,7 +662,6 @@ public class CookingModeActivity extends AppCompatActivity {
                     long durationSec = timerObj.optLong("duree_secondes", 0);
                     originalDurationInMillis = durationSec * 1000;
 
-                    // Default display
                     updateTimerText(originalDurationInMillis);
                     btnTimerAction.setText("Démarrer");
 
