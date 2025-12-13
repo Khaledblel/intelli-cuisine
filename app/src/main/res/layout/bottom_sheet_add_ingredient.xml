@@ -14,6 +14,18 @@
         android:textStyle="bold"
         android:textColor="@color/dark_text"
         android:gravity="center"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnScan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scanner"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/primary_orange"
+        android:drawableLeft="@android:drawable/ic_menu_camera"
+        android:drawableTint="@color/white"
+        android:layout_gravity="center_horizontal"
         android:layout_marginBottom="16dp"/>
 
     <ScrollView

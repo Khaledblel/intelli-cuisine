@@ -1,5 +1,6 @@
 package com.khaled.intellicuisine.ui.dashboard;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -12,10 +13,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.ai.FirebaseAI;
+import com.google.firebase.ai.GenerativeModel;
+import com.google.firebase.ai.java.GenerativeModelFutures;
+import com.google.firebase.ai.type.Content;
+import com.google.firebase.ai.type.GenerateContentResponse;
+import com.google.firebase.ai.type.GenerativeBackend;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -25,20 +38,30 @@ import com.google.firebase.firestore.WriteBatch;
 import com.khaled.intellicuisine.R;
 import com.khaled.intellicuisine.models.Ingredient;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 public class AddIngredientBottomSheet extends BottomSheetDialogFragment {
 
     private LinearLayout container;
     private TextView btnAddRow;
     private Button btnSaveAll;
+    private Button btnScan;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
     private int rowCount = 0;
     private final int MAX_ROWS = 5;
+
+    private final ActivityResultLauncher<Void> takePictureLauncher = registerForActivityResult(
+            new ActivityResultContracts.TakePicturePreview(),
+            this::analyzeImage
+    );
 
     @Nullable
     @Override
@@ -51,13 +74,115 @@ public class AddIngredientBottomSheet extends BottomSheetDialogFragment {
         container = view.findViewById(R.id.ingredientsContainer);
         btnAddRow = view.findViewById(R.id.btnAddRow);
         btnSaveAll = view.findViewById(R.id.btnSaveAll);
+        btnScan = view.findViewById(R.id.btnScan);
 
         addRow();
 
         btnAddRow.setOnClickListener(v -> addRow());
         btnSaveAll.setOnClickListener(v -> saveAllIngredients());
+        btnScan.setOnClickListener(v -> takePictureLauncher.launch(null));
 
         return view;
+    }
+
+    private void analyzeImage(Bitmap bitmap) {
+        if (bitmap == null) return;
+
+        btnScan.setText("Analyse en cours...");
+        btnScan.setEnabled(false);
+        btnSaveAll.setEnabled(false);
+
+        GenerativeModel ai = FirebaseAI.getInstance(GenerativeBackend.googleAI())
+                .generativeModel("gemini-2.5-flash");
+
+        GenerativeModelFutures model = GenerativeModelFutures.from(ai);
+
+        String promptText = "Identify the food ingredients in this picture. Return ONLY a JSON array of objects with keys 'name' (in French) and 'quantity' (estimate, e.g. '2' or '500g'). Example: [{\"name\": \"Pomme\", \"quantity\": \"3\"}]. Do not use markdown formatting.";
+
+        Content content = new Content.Builder()
+                .addImage(bitmap)
+                .addText(promptText)
+                .build();
+
+        Executor executor = ContextCompat.getMainExecutor(requireContext());
+        ListenableFuture<GenerateContentResponse> response = model.generateContent(content);
+
+        Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
+            @Override
+            public void onSuccess(GenerateContentResponse result) {
+                String resultText = result.getText();
+                parseAndPopulate(resultText);
+                btnScan.setText("Scanner");
+                btnScan.setEnabled(true);
+                btnSaveAll.setEnabled(true);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                t.printStackTrace();
+                Toast.makeText(getContext(), "Erreur d'analyse IA", Toast.LENGTH_SHORT).show();
+                btnScan.setText("Scanner");
+                btnScan.setEnabled(true);
+                btnSaveAll.setEnabled(true);
+            }
+        }, executor);
+    }
+
+    private void parseAndPopulate(String jsonResponse) {
+        try {
+            if (jsonResponse.startsWith("```json")) {
+                jsonResponse = jsonResponse.substring(7);
+            }
+            if (jsonResponse.startsWith("```")) {
+                jsonResponse = jsonResponse.substring(3);
+            }
+            if (jsonResponse.endsWith("```")) {
+                jsonResponse = jsonResponse.substring(0, jsonResponse.length() - 3);
+            }
+
+            JSONArray array = new JSONArray(jsonResponse.trim());
+
+            if (container.getChildCount() == 1) {
+                View row = container.getChildAt(0);
+                EditText etName = row.findViewById(R.id.etRowName);
+                if (TextUtils.isEmpty(etName.getText())) {
+                    container.removeView(row);
+                    rowCount--;
+                }
+            }
+
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+                String name = obj.optString("name");
+                String qty = obj.optString("quantity");
+                addPopulatedRow(name, qty);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Format de réponse invalide", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void addPopulatedRow(String name, String qty) {
+        View rowView = getLayoutInflater().inflate(R.layout.item_ingredient_row, container, false);
+
+        EditText etName = rowView.findViewById(R.id.etRowName);
+        EditText etQty = rowView.findViewById(R.id.etRowQty);
+
+        etName.setText(name);
+        etQty.setText(qty);
+
+        ImageView btnRemove = rowView.findViewById(R.id.btnRemoveRow);
+        btnRemove.setOnClickListener(v -> {
+            container.removeView(rowView);
+            rowCount--;
+            updateAddButtonState();
+        });
+
+        container.addView(rowView);
+        rowCount++;
+        updateAddButtonState();
     }
 
     private void addRow() {
