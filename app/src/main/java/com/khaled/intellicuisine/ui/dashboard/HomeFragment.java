@@ -38,6 +38,7 @@ public class HomeFragment extends Fragment {
     private TextView tvGreeting;
     private RecyclerView rvRecentRecipes;
     private RecyclerView rvInventoryHome;
+    private View emptyRecentRecipes;
 
     public HomeFragment() {
     }
@@ -55,6 +56,7 @@ public class HomeFragment extends Fragment {
         tvGreeting = view.findViewById(R.id.tvGreeting);
         rvRecentRecipes = view.findViewById(R.id.rvRecentRecipes);
         rvInventoryHome = view.findViewById(R.id.rvInventoryHome);
+        emptyRecentRecipes = view.findViewById(R.id.emptyRecentRecipes);
         View btnGenerate = view.findViewById(R.id.btnGenerate);
         TextView tvHomeTitle = view.findViewById(R.id.tvHomeTitle);
         TextView tvInventorySeeAll = view.findViewById(R.id.tvInventorySeeAll);
@@ -118,13 +120,21 @@ public class HomeFragment extends Fragment {
                         }
                     }
 
-                    RecipeAdapter adapter = new RecipeAdapter(recipes, recipe -> {
-                        Intent intent = new Intent(getContext(), RecipeGenerationActivity.class);
-                        intent.putExtra("RECIPE_ID", recipe.getId());
-                        startActivity(intent);
-                    });
-                    rvRecentRecipes.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                    rvRecentRecipes.setAdapter(adapter);
+                    if (recipes.isEmpty()) {
+                        rvRecentRecipes.setVisibility(View.GONE);
+                        emptyRecentRecipes.setVisibility(View.VISIBLE);
+                    } else {
+                        rvRecentRecipes.setVisibility(View.VISIBLE);
+                        emptyRecentRecipes.setVisibility(View.GONE);
+                        
+                        RecipeAdapter adapter = new RecipeAdapter(recipes, recipe -> {
+                            Intent intent = new Intent(getContext(), RecipeGenerationActivity.class);
+                            intent.putExtra("RECIPE_ID", recipe.getId());
+                            startActivity(intent);
+                        });
+                        rvRecentRecipes.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                        rvRecentRecipes.setAdapter(adapter);
+                    }
                 });
     }
 

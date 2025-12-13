@@ -125,15 +125,45 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBaseline_toBaselineOf="@id/tvRecentTitle"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvRecentRecipes"
+        <FrameLayout
+            android:id="@+id/recentRecipesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_recipe_card"
-            app:layout_constraintTop_toBottomOf="@id/tvRecentTitle"/>
+            app:layout_constraintTop_toBottomOf="@id/tvRecentTitle">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRecentRecipes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_recipe_card"/>
+
+            <LinearLayout
+                android:id="@+id/emptyRecentRecipes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone"
+                android:padding="20dp">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_inventory"
+                    app:tint="#DDD" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aucune recette récente"
+                    android:textSize="14sp"
+                    android:textColor="#888"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvInventoryTitle"
@@ -146,7 +176,7 @@
             android:fontFamily="serif"
             android:layout_marginTop="32dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/rvRecentRecipes"/>
+            app:layout_constraintTop_toBottomOf="@id/recentRecipesContainer"/>
 
         <TextView
             android:id="@+id/tvInventorySeeAll"
