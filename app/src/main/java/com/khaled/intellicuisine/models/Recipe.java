@@ -1,10 +1,11 @@
 package com.khaled.intellicuisine.models;
 
 import com.google.firebase.firestore.Exclude;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public class Recipe {
+public class Recipe implements Serializable {
     private String id;
     private String title;
     private String difficulty;
