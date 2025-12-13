@@ -458,6 +458,15 @@ public class CookingModeActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(timerReceiver);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (isFinishing()) {
+            Intent intent = new Intent(this, TimerService.class);
+            stopService(intent);
+        }
+    }
+
     private void checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {

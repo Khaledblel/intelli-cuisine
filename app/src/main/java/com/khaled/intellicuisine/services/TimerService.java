@@ -32,6 +32,7 @@ public class TimerService extends Service {
     public static final String EXTRA_STEP_INDEX = "EXTRA_STEP_INDEX";
 
     private static final String CHANNEL_ID = "CookingTimerChannel";
+    private static final String CHANNEL_ID_FINISHED = "CookingTimerFinishedChannel";
     private static final int NOTIFICATION_ID = 101;
 
     private final IBinder binder = new LocalBinder();
@@ -67,10 +68,24 @@ public class TimerService extends Service {
                     break;
                 case ACTION_STOP:
                     stopTimer();
+                    stopSelf();
                     break;
             }
         }
         return START_NOT_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopTimer();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        stopTimer();
+        stopSelf();
     }
 
     @Override
@@ -149,14 +164,23 @@ public class TimerService extends Service {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Minuteur de Cuisine",
-                    NotificationManager.IMPORTANCE_LOW
-            );
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
+                NotificationChannel serviceChannel = new NotificationChannel(
+                        CHANNEL_ID,
+                        "Minuteur de Cuisine",
+                        NotificationManager.IMPORTANCE_LOW
+                );
                 manager.createNotificationChannel(serviceChannel);
+
+                NotificationChannel finishedChannel = new NotificationChannel(
+                        CHANNEL_ID_FINISHED,
+                        "Minuteur Terminé",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+                finishedChannel.enableVibration(true);
+                finishedChannel.setDescription("Alerte lorsque le minuteur est terminé");
+                manager.createNotificationChannel(finishedChannel);
             }
         }
     }
@@ -206,7 +230,7 @@ public class TimerService extends Service {
     }
 
     private void showFinishedNotification() {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID_FINISHED)
                 .setContentTitle("C'est prêt !")
                 .setContentText("Le minuteur de l'étape " + (currentStepIndex + 1) + " est terminé.")
                 .setSmallIcon(R.drawable.ic_time)
