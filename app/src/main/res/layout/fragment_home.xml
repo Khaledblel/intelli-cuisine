@@ -114,17 +114,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardHero"/>
 
-        <TextView
-            android:id="@+id/tvSeeAll"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/home_see_all"
-            android:textSize="14sp"
-            android:textColor="#009688"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBaseline_toBaselineOf="@id/tvRecentTitle"/>
-
         <FrameLayout
             android:id="@+id/recentRecipesContainer"
             android:layout_width="match_parent"
@@ -194,11 +183,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="80dp"
+            android:layout_marginBottom="90dp"
             android:orientation="horizontal"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_recipe_card"
-            app:layout_constraintTop_toBottomOf="@id/tvInventoryTitle"/>
+            app:layout_constraintTop_toBottomOf="@id/tvInventoryTitle"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

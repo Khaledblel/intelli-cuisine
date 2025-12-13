@@ -94,7 +94,9 @@
             android:text="Préparation de l'étape 1..."
             android:textColor="@color/dark_text"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingHorizontal="32dp"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
