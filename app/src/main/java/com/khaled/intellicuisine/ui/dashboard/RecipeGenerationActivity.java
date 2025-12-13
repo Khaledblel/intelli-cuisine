@@ -1,8 +1,10 @@
 package com.khaled.intellicuisine.ui.dashboard;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -34,14 +36,18 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.khaled.intellicuisine.R;
+import com.khaled.intellicuisine.models.Recipe;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 public class RecipeGenerationActivity extends AppCompatActivity {
@@ -50,6 +56,7 @@ public class RecipeGenerationActivity extends AppCompatActivity {
     private TextView tvRecipeTitle, tvItemsCount, tvTime, tvDifficulty;
     private View headerBg;
     private ImageView imgFood;
+    private ImageView btnFavorite;
     private LinearLayout ingredientsContainer;
     private LinearLayout tipsContainer;
     private LinearLayout instructionsContainer;
@@ -65,6 +72,14 @@ public class RecipeGenerationActivity extends AppCompatActivity {
     private List<String> tipsList = new ArrayList<>();
     private String servingsText = "";
 
+    private String currentTitle;
+    private String currentDifficulty;
+    private int currentTime;
+    private String currentServings;
+    private String currentImageBase64;
+    private String currentRecipeId;
+    private boolean isFavorite = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +94,9 @@ public class RecipeGenerationActivity extends AppCompatActivity {
 
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
+
+        btnFavorite = findViewById(R.id.btnFavorite);
+        btnFavorite.setOnClickListener(v -> toggleFavorite());
 
         loadingView = findViewById(R.id.loadingView);
         contentScrollView = findViewById(R.id.contentScrollView);
@@ -117,7 +135,14 @@ public class RecipeGenerationActivity extends AppCompatActivity {
         tabInstructions.setOnClickListener(v -> selectTab(tabInstructions));
         tabTips.setOnClickListener(v -> selectTab(tabTips));
 
-        generateRecipe();
+        String recipeId = getIntent().getStringExtra("RECIPE_ID");
+        if (recipeId != null) {
+            currentRecipeId = recipeId;
+            loadRecipeFromFirestore(recipeId);
+            checkIfFavorite();
+        } else {
+            generateRecipe();
+        }
     }
 
     private void selectTab(TextView selectedTab) {
@@ -139,6 +164,83 @@ public class RecipeGenerationActivity extends AppCompatActivity {
         } else {
             instructionsContainer.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void loadRecipeFromFirestore(String recipeId) {
+        loadingView.setVisibility(View.VISIBLE);
+        contentScrollView.setVisibility(View.GONE);
+        btnStart.setVisibility(View.GONE);
+        tvLoadingText.setText("Chargement de la recette...");
+
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null) return;
+
+        FirebaseFirestore.getInstance().collection("users").document(userId)
+                .collection("recipes").document(recipeId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Recipe recipe = documentSnapshot.toObject(Recipe.class);
+                    if (recipe != null) {
+                        displayLoadedRecipe(recipe);
+                    } else {
+                        handleError("Recette introuvable.");
+                    }
+                })
+                .addOnFailureListener(e -> handleError("Erreur de chargement."));
+    }
+
+    private void displayLoadedRecipe(Recipe recipe) {
+        currentTitle = recipe.getTitle();
+        currentDifficulty = recipe.getDifficulty();
+        currentTime = recipe.getTimeMinutes();
+        currentServings = recipe.getServings();
+        currentImageBase64 = recipe.getImageBase64();
+
+        tvRecipeTitle.setText(currentTitle);
+        tvDifficulty.setText(currentDifficulty);
+        tvTime.setText(currentTime + " Min");
+        
+        ingredientsList.clear();
+        if (recipe.getIngredients() != null) {
+            for (Map<String, Object> map : recipe.getIngredients()) {
+                ingredientsList.add(new JSONObject(map));
+            }
+        }
+        tvItemsCount.setText(ingredientsList.size() + " Items");
+        populateIngredientsUI();
+
+        instructionsList.clear();
+        if (recipe.getSteps() != null) {
+            for (Map<String, Object> map : recipe.getSteps()) {
+                instructionsList.add(new JSONObject(map));
+            }
+        }
+        populateInstructionsUI();
+
+        tipsList.clear();
+        if (recipe.getTips() != null) {
+            tipsList.addAll(recipe.getTips());
+        }
+        servingsText = currentServings;
+        populateTipsUI();
+
+        if (currentImageBase64 != null && !currentImageBase64.isEmpty()) {
+            try {
+                byte[] decodedString = Base64.decode(currentImageBase64, Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                headerBg.setBackground(new BitmapDrawable(getResources(), decodedByte));
+                imgFood.setVisibility(View.GONE);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        loadingView.setVisibility(View.GONE);
+        contentScrollView.setVisibility(View.VISIBLE);
+        btnStart.setVisibility(View.VISIBLE);
+        selectTab(tabInstructions);
+
+        checkIfFavorite();
     }
 
     private void generateRecipe() {
@@ -245,10 +347,11 @@ public class RecipeGenerationActivity extends AppCompatActivity {
 
             JSONObject json = new JSONObject(jsonResponse.trim());
 
-            String title = json.optString("titre", "Recette Mystère");
-            String difficulty = json.optString("difficulte", "Moyen");
-            int time = json.optInt("temps_total_minutes", 30);
-            servingsText = json.optString("servings", "N/A");
+            currentTitle = json.optString("titre", "Recette Mystère");
+            currentDifficulty = json.optString("difficulte", "Moyen");
+            currentTime = json.optInt("temps_total_minutes", 30);
+            currentServings = json.optString("servings", "N/A");
+            servingsText = currentServings;
             
             JSONArray ingredientsArray = json.optJSONArray("ingredients_necessaires");
             JSONArray stepsArray = json.optJSONArray("etapes");
@@ -280,14 +383,14 @@ public class RecipeGenerationActivity extends AppCompatActivity {
             }
             populateTipsUI();
 
-            tvRecipeTitle.setText(title);
-            tvDifficulty.setText(difficulty);
-            tvTime.setText(time + " Min");
+            tvRecipeTitle.setText(currentTitle);
+            tvDifficulty.setText(currentDifficulty);
+            tvTime.setText(currentTime + " Min");
             tvItemsCount.setText(itemsCount + " Items");
 
             selectTab(tabInstructions);
             
-            generateRecipeImage(title);
+            generateRecipeImage(currentTitle);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -488,9 +591,17 @@ public class RecipeGenerationActivity extends AppCompatActivity {
                 if (generatedImage != null) {
                     headerBg.setBackground(new BitmapDrawable(getResources(), generatedImage));
                     imgFood.setVisibility(View.GONE);
+
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    generatedImage.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+                    byte[] data = baos.toByteArray();
+                    currentImageBase64 = Base64.encodeToString(data, Base64.DEFAULT);
                 } else {
                     imgFood.setVisibility(View.VISIBLE);
+                    currentImageBase64 = "";
                 }
+                
+                saveRecipeToFirestore();
                 
                 loadingView.setVisibility(View.GONE);
                 contentScrollView.setVisibility(View.VISIBLE);
@@ -507,8 +618,132 @@ public class RecipeGenerationActivity extends AppCompatActivity {
                 btnStart.setEnabled(true);
                 imgFood.setVisibility(View.VISIBLE);
                 Toast.makeText(RecipeGenerationActivity.this, "Image non générée, affichage de la recette.", Toast.LENGTH_SHORT).show();
+                
+                currentImageBase64 = "";
+                saveRecipeToFirestore();
             }
         }, executor);
+    }
+
+    private void saveRecipeToFirestore() {
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null) return;
+
+        Recipe recipe = new Recipe();
+        recipe.setTitle(currentTitle);
+        recipe.setDifficulty(currentDifficulty);
+        recipe.setTimeMinutes(currentTime);
+        recipe.setServings(currentServings);
+        recipe.setImageBase64(currentImageBase64);
+        recipe.setCreatedAt(System.currentTimeMillis());
+        recipe.setTips(tipsList);
+
+        List<Map<String, Object>> ingList = new ArrayList<>();
+        for (JSONObject obj : ingredientsList) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("nom", obj.optString("nom"));
+            map.put("quantite", obj.optString("quantite"));
+            ingList.add(map);
+        }
+        recipe.setIngredients(ingList);
+
+        List<Map<String, Object>> stepList = new ArrayList<>();
+        for (JSONObject obj : instructionsList) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("etape_index", obj.optInt("etape_index"));
+            map.put("description", obj.optString("description"));
+            stepList.add(map);
+        }
+        recipe.setSteps(stepList);
+
+        FirebaseFirestore.getInstance().collection("users").document(userId)
+                .collection("recipes")
+                .add(recipe)
+                .addOnSuccessListener(documentReference -> {
+                    currentRecipeId = documentReference.getId();
+                    checkIfFavorite();
+                });
+    }
+
+    private void checkIfFavorite() {
+        if (currentRecipeId == null) return;
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null) return;
+
+        FirebaseFirestore.getInstance().collection("users").document(userId)
+                .collection("favorites").document(currentRecipeId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    isFavorite = documentSnapshot.exists();
+                    updateFavoriteIcon();
+                });
+    }
+
+    private void toggleFavorite() {
+        if (currentRecipeId == null) {
+            Toast.makeText(this, "Veuillez attendre la fin de la sauvegarde...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null) return;
+
+        if (isFavorite) {
+            FirebaseFirestore.getInstance().collection("users").document(userId)
+                    .collection("favorites").document(currentRecipeId)
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        isFavorite = false;
+                        updateFavoriteIcon();
+                        Toast.makeText(this, "Retiré des favoris", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Recipe recipe = new Recipe();
+            recipe.setId(currentRecipeId);
+            recipe.setTitle(currentTitle);
+            recipe.setDifficulty(currentDifficulty);
+            recipe.setTimeMinutes(currentTime);
+            recipe.setServings(currentServings);
+            recipe.setImageBase64(currentImageBase64);
+            recipe.setCreatedAt(System.currentTimeMillis());
+            recipe.setTips(tipsList);
+
+            List<Map<String, Object>> ingList = new ArrayList<>();
+            for (JSONObject obj : ingredientsList) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("nom", obj.optString("nom"));
+                map.put("quantite", obj.optString("quantite"));
+                ingList.add(map);
+            }
+            recipe.setIngredients(ingList);
+
+            List<Map<String, Object>> stepList = new ArrayList<>();
+            for (JSONObject obj : instructionsList) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("etape_index", obj.optInt("etape_index"));
+                map.put("description", obj.optString("description"));
+                stepList.add(map);
+            }
+            recipe.setSteps(stepList);
+
+            FirebaseFirestore.getInstance().collection("users").document(userId)
+                    .collection("favorites").document(currentRecipeId)
+                    .set(recipe)
+                    .addOnSuccessListener(aVoid -> {
+                        isFavorite = true;
+                        updateFavoriteIcon();
+                        Toast.makeText(this, "Ajouté aux favoris", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    private void updateFavoriteIcon() {
+        if (isFavorite) {
+            btnFavorite.setImageResource(R.drawable.ic_favorite);
+            btnFavorite.setColorFilter(ContextCompat.getColor(this, R.color.primary_orange));
+        } else {
+            btnFavorite.setImageResource(R.drawable.ic_favorite);
+            btnFavorite.setColorFilter(ContextCompat.getColor(this, R.color.dark_text));
+        }
     }
 
     private void handleError(String message) {

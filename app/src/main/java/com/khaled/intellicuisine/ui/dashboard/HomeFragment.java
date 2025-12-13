@@ -21,6 +21,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.khaled.intellicuisine.R;
 import com.khaled.intellicuisine.adapters.RecipeAdapter;
 import com.khaled.intellicuisine.models.Ingredient;
+import com.khaled.intellicuisine.models.Recipe;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,11 +97,35 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupRecipeCarousel() {
-        List<String> recipes = Arrays.asList("Pizza", "Sandwich", "Matar Paneer", "Salade", "Pasta", "Burger");
-        
-        RecipeAdapter adapter = new RecipeAdapter(recipes);
-        rvRecentRecipes.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvRecentRecipes.setAdapter(adapter);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(user.getUid())
+                .collection("recipes")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(10)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null || value == null) return;
+
+                    List<Recipe> recipes = new ArrayList<>();
+                    for (DocumentSnapshot doc : value.getDocuments()) {
+                        Recipe recipe = doc.toObject(Recipe.class);
+                        if (recipe != null) {
+                            recipe.setId(doc.getId());
+                            recipes.add(recipe);
+                        }
+                    }
+
+                    RecipeAdapter adapter = new RecipeAdapter(recipes, recipe -> {
+                        Intent intent = new Intent(getContext(), RecipeGenerationActivity.class);
+                        intent.putExtra("RECIPE_ID", recipe.getId());
+                        startActivity(intent);
+                    });
+                    rvRecentRecipes.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+                    rvRecentRecipes.setAdapter(adapter);
+                });
     }
 
     private void setupInventoryCarousel() {
@@ -114,7 +140,7 @@ public class HomeFragment extends Fragment {
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
 
-                    List<String> inventoryNames = new ArrayList<>();
+                    List<Recipe> dummyRecipes = new ArrayList<>();
                     for (DocumentSnapshot doc : value.getDocuments()) {
                         String name = doc.getString("name");
                         if (name != null) {
@@ -123,11 +149,13 @@ public class HomeFragment extends Fragment {
                             } else {
                                 name = name.toUpperCase();
                             }
-                            inventoryNames.add(name);
+                            Recipe r = new Recipe();
+                            r.setTitle(name);
+                            dummyRecipes.add(r);
                         }
                     }
 
-                    RecipeAdapter adapter = new RecipeAdapter(inventoryNames);
+                    RecipeAdapter adapter = new RecipeAdapter(dummyRecipes, null);
                     rvInventoryHome.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                     rvInventoryHome.setAdapter(adapter);
                 });
