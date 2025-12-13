@@ -1,5 +1,6 @@
 package com.khaled.intellicuisine.ui.dashboard;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -135,6 +136,42 @@ public class RecipeGenerationActivity extends AppCompatActivity {
         tabInstructions.setOnClickListener(v -> selectTab(tabInstructions));
         tabTips.setOnClickListener(v -> selectTab(tabTips));
 
+        btnStart.setOnClickListener(v -> {
+            Intent intent = new Intent(RecipeGenerationActivity.this, CookingModeActivity.class);
+            
+            JSONArray stepsArray = new JSONArray();
+            for (JSONObject step : instructionsList) {
+                try {
+                    JSONObject cleanStep = new JSONObject(step.toString());
+                    if (cleanStep.has("image_base64")) {
+                        cleanStep.remove("image_base64");
+                    }
+                    stepsArray.put(cleanStep);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            
+            intent.putExtra("STEPS_DATA", stepsArray.toString());
+            intent.putExtra("RECIPE_TITLE", currentTitle);
+            
+            if (currentImageBase64 != null && !currentImageBase64.isEmpty()) {
+                try {
+                    byte[] decodedString = Base64.decode(currentImageBase64, Base64.DEFAULT);
+                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    String imagePath = saveImageToCache(decodedByte);
+                    if (imagePath != null) {
+                        intent.putExtra("RECIPE_IMAGE_PATH", imagePath);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            
+            intent.putExtra("RECIPE_ID", currentRecipeId);
+            startActivity(intent);
+        });
+
         String recipeId = getIntent().getStringExtra("RECIPE_ID");
         if (recipeId != null) {
             currentRecipeId = recipeId;
@@ -142,6 +179,23 @@ public class RecipeGenerationActivity extends AppCompatActivity {
             checkIfFavorite();
         } else {
             generateRecipe();
+        }
+    }
+
+    private String saveImageToCache(Bitmap bitmap) {
+        try {
+            java.io.File cachePath = new java.io.File(getCacheDir(), "images");
+            if (!cachePath.exists()) {
+                cachePath.mkdirs();
+            }
+            java.io.File file = new java.io.File(cachePath, "temp_recipe_image.jpg");
+            java.io.FileOutputStream stream = new java.io.FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+            stream.close();
+            return file.getAbsolutePath();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -652,6 +706,29 @@ public class RecipeGenerationActivity extends AppCompatActivity {
             Map<String, Object> map = new HashMap<>();
             map.put("etape_index", obj.optInt("etape_index"));
             map.put("description", obj.optString("description"));
+
+            JSONArray ingUsed = obj.optJSONArray("ingredients_used");
+            if (ingUsed != null) {
+                List<String> list = new ArrayList<>();
+                for(int i=0; i<ingUsed.length(); i++) list.add(ingUsed.optString(i));
+                map.put("ingredients_used", list);
+            }
+
+            JSONArray eqUsed = obj.optJSONArray("equipment_used");
+            if (eqUsed != null) {
+                List<String> list = new ArrayList<>();
+                for(int i=0; i<eqUsed.length(); i++) list.add(eqUsed.optString(i));
+                map.put("equipment_used", list);
+            }
+
+            JSONObject timer = obj.optJSONObject("timer");
+            if (timer != null) {
+                Map<String, Object> timerMap = new HashMap<>();
+                timerMap.put("active", timer.optBoolean("active"));
+                timerMap.put("duree_secondes", timer.optLong("duree_secondes"));
+                map.put("timer", timerMap);
+            }
+
             stepList.add(map);
         }
         recipe.setSteps(stepList);
@@ -721,6 +798,29 @@ public class RecipeGenerationActivity extends AppCompatActivity {
                 Map<String, Object> map = new HashMap<>();
                 map.put("etape_index", obj.optInt("etape_index"));
                 map.put("description", obj.optString("description"));
+
+                JSONArray ingUsed = obj.optJSONArray("ingredients_used");
+                if (ingUsed != null) {
+                    List<String> list = new ArrayList<>();
+                    for(int i=0; i<ingUsed.length(); i++) list.add(ingUsed.optString(i));
+                    map.put("ingredients_used", list);
+                }
+
+                JSONArray eqUsed = obj.optJSONArray("equipment_used");
+                if (eqUsed != null) {
+                    List<String> list = new ArrayList<>();
+                    for(int i=0; i<eqUsed.length(); i++) list.add(eqUsed.optString(i));
+                    map.put("equipment_used", list);
+                }
+
+                JSONObject timer = obj.optJSONObject("timer");
+                if (timer != null) {
+                    Map<String, Object> timerMap = new HashMap<>();
+                    timerMap.put("active", timer.optBoolean("active"));
+                    timerMap.put("duree_secondes", timer.optLong("duree_secondes"));
+                    map.put("timer", timerMap);
+                }
+
                 stepList.add(map);
             }
             recipe.setSteps(stepList);
