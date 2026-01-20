@@ -16,6 +16,8 @@ import com.khaled.intellicuisine.R;
 
 public class HomeActivity extends AppCompatActivity {
 
+    private int currentPosition = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +35,7 @@ public class HomeActivity extends AppCompatActivity {
         Fragment favoritesFragment = new FavoritesFragment();
         Fragment profileFragment = new ProfileFragment();
 
-        loadFragment(homeFragment);
+        loadFragment(homeFragment, 0);
 
         LinearLayout navHome = findViewById(R.id.navHome);
         LinearLayout navInventory = findViewById(R.id.navInventory);
@@ -41,22 +43,22 @@ public class HomeActivity extends AppCompatActivity {
         LinearLayout navProfile = findViewById(R.id.navProfile);
 
         navHome.setOnClickListener(v -> {
-            loadFragment(homeFragment);
+            loadFragment(homeFragment, 0);
             updateNavUI(navHome, navInventory, navFavorites, navProfile);
         });
 
         navInventory.setOnClickListener(v -> {
-            loadFragment(inventoryFragment);
+            loadFragment(inventoryFragment, 1);
             updateNavUI(navInventory, navHome, navFavorites, navProfile);
         });
 
         navFavorites.setOnClickListener(v -> {
-            loadFragment(favoritesFragment);
+            loadFragment(favoritesFragment, 2);
             updateNavUI(navFavorites, navHome, navInventory, navProfile);
         });
 
         navProfile.setOnClickListener(v -> {
-            loadFragment(profileFragment);
+            loadFragment(profileFragment, 3);
             updateNavUI(navProfile, navHome, navInventory, navFavorites);
         });
 
@@ -66,10 +68,26 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void loadFragment(Fragment fragment) {
+    private void loadFragment(Fragment fragment, int newPosition) {
+        if (newPosition == currentPosition && getSupportFragmentManager().findFragmentById(R.id.fragment_container) != null) {
+            return;
+        }
+
+        int enterAnim, exitAnim;
+        if (newPosition > currentPosition) {
+            enterAnim = R.anim.slide_in_right;
+            exitAnim = R.anim.slide_out_left;
+        } else {
+            enterAnim = R.anim.slide_in_left;
+            exitAnim = R.anim.slide_out_right;
+        }
+
         getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(enterAnim, exitAnim)
                 .replace(R.id.fragment_container, fragment)
                 .commit();
+
+        currentPosition = newPosition;
     }
 
     private void updateNavUI(LinearLayout selected, LinearLayout... others) {
