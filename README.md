@@ -105,7 +105,7 @@
       <sub>Quick access to saved recipes</sub>
     </td>
     <td align="center">
-      <img src="docs/screen_recipe_details.png" width="200"><br>
+      <img src="docs/screen_recipe_detail.png" width="200"><br>
       <strong>Recipe Details</strong><br>
       <sub>Ingredients, instructions & chef tips</sub>
     </td>
