@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app/src/main/res/drawable/ic_logo_intellicuisine.png" alt="IntelliCuisine Logo" width="120" height="120">
+  <img src="app/src/main/res/drawable/ic_logo_intellicuisine.png" alt="IntelliCuisine Logo" width="180" style="height:auto;">
 </p>
 
 <h1 align="center">IntelliCuisine: AI-Powered Smart Recipe Generator</h1>
