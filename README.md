@@ -95,22 +95,22 @@
 <table>
   <tr>
     <td align="center">
-      <img src="docs/screenshots/screen_home.png" width="200"><br>
+      <img src="docs/screen_home.png" width="200"><br>
       <strong>Home Screen</strong><br>
       <sub>Generate recipes & view your inventory</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/screen_favorites.png" width="200"><br>
+      <img src="docs/screen_favorites.png" width="200"><br>
       <strong>Favorites</strong><br>
       <sub>Quick access to saved recipes</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/screen_recipe_details.png" width="200"><br>
+      <img src="docs/screen_recipe_details.png" width="200"><br>
       <strong>Recipe Details</strong><br>
       <sub>Ingredients, instructions & chef tips</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/screen_cooking_mode.png" width="200"><br>
+      <img src="docs/screen_cooking_mode.png" width="200"><br>
       <strong>Cooking Mode</strong><br>
       <sub>Step-by-step guidance with AI images</sub>
     </td>
