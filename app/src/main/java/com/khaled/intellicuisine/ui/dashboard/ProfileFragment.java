@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import androidx.core.content.ContextCompat;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.TypedValue;
@@ -16,10 +18,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -149,14 +149,24 @@ public class ProfileFragment extends Fragment {
         layout.setOrientation(LinearLayout.VERTICAL);
         int padding = (int) (24 * getResources().getDisplayMetrics().density);
         layout.setPadding(padding, padding, padding, padding);
-        layout.setBackgroundColor(Color.WHITE);
+        try {
+            layout.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.bg_bottom_sheet));
+        } catch (Exception ex) {
+            layout.setBackground(createRoundedDrawable(ContextCompat.getColor(getContext(), R.color.white), 24f));
+        }
 
-        TextView label = new TextView(getContext());
-        label.setText(R.string.label_full_name);
-        label.setTextColor(ContextCompat.getColor(getContext(), R.color.dark_text));
-        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        label.setPadding(0, 0, 0, padding / 2);
-        layout.addView(label);
+        TextView title = new TextView(getContext());
+        title.setText("Modifier le nom");
+        title.setTextColor(ContextCompat.getColor(getContext(), R.color.dark_text));
+        title.setTextSize(20); // match mot de passe
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL); // left align
+        title.setPadding(0, 0, 0, 0);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        titleParams.setMargins(0, 0, 0, padding / 2); // bottom margin
+        title.setLayoutParams(titleParams);
+        layout.addView(title);
 
         EditText input = new EditText(getContext());
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -222,14 +232,24 @@ public class ProfileFragment extends Fragment {
         layout.setOrientation(LinearLayout.VERTICAL);
         int padding = (int) (24 * getResources().getDisplayMetrics().density);
         layout.setPadding(padding, padding, padding, padding);
-        layout.setBackgroundColor(Color.WHITE);
+        try {
+            layout.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.bg_bottom_sheet));
+        } catch (Exception ex) {
+            layout.setBackground(createRoundedDrawable(ContextCompat.getColor(getContext(), R.color.white), 24f));
+        }
 
-        TextView label = new TextView(getContext());
-        label.setText(R.string.label_email);
-        label.setTextColor(ContextCompat.getColor(getContext(), R.color.dark_text));
-        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        label.setPadding(0, 0, 0, padding / 2);
-        layout.addView(label);
+        TextView title = new TextView(getContext());
+        title.setText("Modifier l'adresse mail");
+        title.setTextColor(ContextCompat.getColor(getContext(), R.color.dark_text));
+        title.setTextSize(20); // match mot de passe
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL); // left align
+        title.setPadding(0, 0, 0, 0);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        titleParams.setMargins(0, 0, 0, padding / 2); // bottom margin
+        title.setLayoutParams(titleParams);
+        layout.addView(title);
 
         EditText input = new EditText(getContext());
         input.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
@@ -309,7 +329,11 @@ public class ProfileFragment extends Fragment {
         layout.setOrientation(LinearLayout.VERTICAL);
         int padding = (int) (24 * getResources().getDisplayMetrics().density);
         layout.setPadding(padding, padding, padding, padding);
-        layout.setBackgroundColor(Color.WHITE);
+        try {
+            layout.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.bg_bottom_sheet));
+        } catch (Exception ex) {
+            layout.setBackground(createRoundedDrawable(ContextCompat.getColor(getContext(), R.color.white), 24f));
+        }
 
         TextView title = new TextView(getContext());
         title.setText(R.string.action_change_password);
@@ -439,7 +463,11 @@ public class ProfileFragment extends Fragment {
         layout.setOrientation(LinearLayout.VERTICAL);
         int padding = (int) (24 * getResources().getDisplayMetrics().density);
         layout.setPadding(padding, padding, padding, padding);
-        layout.setBackgroundColor(Color.WHITE);
+        try {
+            layout.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.bg_bottom_sheet));
+        } catch (Exception ex) {
+            layout.setBackground(createRoundedDrawable(ContextCompat.getColor(getContext(), R.color.white), 24f));
+        }
 
         TextView title = new TextView(getContext());
         title.setText(R.string.action_delete_account);

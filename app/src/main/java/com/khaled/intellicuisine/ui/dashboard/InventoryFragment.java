@@ -133,7 +133,11 @@ public class InventoryFragment extends Fragment {
         layout.setOrientation(LinearLayout.VERTICAL);
         int padding = (int) (24 * getResources().getDisplayMetrics().density);
         layout.setPadding(padding, padding, padding, padding);
-        layout.setBackgroundColor(Color.WHITE);
+        try {
+            layout.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.bg_bottom_sheet));
+        } catch (Exception ex) {
+            layout.setBackground(createRoundedDrawable(ContextCompat.getColor(getContext(), R.color.white), 24f));
+        }
 
         TextView title = new TextView(getContext());
         title.setText("Modifier l'ingrédient");
@@ -293,6 +297,13 @@ public class InventoryFragment extends Fragment {
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(
                 ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
         );
+        if (dialog.getWindow() != null) {
+            try {
+                dialog.getWindow().setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.bg_bottom_sheet));
+            } catch (Exception ex) {
+                dialog.getWindow().setBackgroundDrawable(createRoundedDrawable(ContextCompat.getColor(requireContext(), R.color.white), 20f));
+            }
+        }
     }
 
     private GradientDrawable createRoundedDrawable(int color, float radius) {

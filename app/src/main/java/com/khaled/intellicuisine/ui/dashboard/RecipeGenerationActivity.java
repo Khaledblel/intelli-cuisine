@@ -156,10 +156,7 @@ public class RecipeGenerationActivity extends AppCompatActivity {
             intent.putExtra("STEPS_DATA", stepsArray.toString());
             intent.putExtra("RECIPE_TITLE", currentTitle);
             intent.putExtra("RECIPE_IMAGE_URL", currentImageUrl);
-            
-            // Still pass local path for immediate loading if available (optional optimization)
-            // Save image to cache and pass path to avoid TransactionTooLargeException
-            // (We can keep this logic if we have the bitmap in memory, but primarily rely on URL now)
+
              if (headerBg.getBackground() instanceof BitmapDrawable) {
                 Bitmap bitmap = ((BitmapDrawable) headerBg.getBackground()).getBitmap();
                 String imagePath = saveImageToCache(bitmap);

@@ -51,6 +51,8 @@
     <string name="profile_title">Compte</string>
     <string name="label_full_name">Nom</string>
     <string name="label_email">Adresse email</string>
+    <string name="action_change_name">Changer le nom</string>
+    <string name="action_change_email">Changer l\'email</string>
     <string name="action_change_password">Changer le mot de passe</string>
     <string name="action_logout">Se déconnecter</string>
     <string name="action_done">Terminé</string>
