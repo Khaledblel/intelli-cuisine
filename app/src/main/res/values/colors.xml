@@ -14,4 +14,6 @@
 
     <color name="recipe_bg_pink">#FFEBEE</color>
     <color name="recipe_tab_selected">#009688</color>
+    <color name="primary_green">#1B5E3C</color>
+    <color name="background_cream">#FFFAF5</color>
 </resources>

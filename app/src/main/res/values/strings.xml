@@ -88,4 +88,9 @@
     <string name="tab_instructions">Instructions</string>
     <string name="tab_tips">Conseils</string>
     <string name="btn_start_recipe">Commencer la recette</string>
+
+    <!-- Welcome Screen -->
+    <string name="welcome_title">Bienvenue!</string>
+    <string name="welcome_subtitle">Découvrez le futur de la cuisine avec l\'assistance IA.</string>
+    <string name="welcome_get_started">Commencer!</string>
 </resources>
