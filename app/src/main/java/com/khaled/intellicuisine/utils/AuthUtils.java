@@ -23,6 +23,8 @@ public class AuthUtils {
 
                 case "ERROR_WRONG_PASSWORD":
                 case "wrong-password":
+                case "ERROR_INVALID_CREDENTIAL":
+                case "invalid-credential":
                     return context.getString(R.string.error_wrong_password);
 
                 case "ERROR_USER_NOT_FOUND":
@@ -44,6 +46,6 @@ public class AuthUtils {
         }
 
         // Fallback for unknown errors
-        return context.getString(R.string.error_unknown) + (exception != null ? " (" + exception.getMessage() + ")" : "");
+        return context.getString(R.string.error_unknown);
     }
 }
